@@ -332,4 +332,20 @@
   <div class="modal-content">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
       <h2 class="modal-title">📘 《DC BON 全明星戰棋》v3.2 官方圖鑑</h2>
-      <button class
+      <button class="btn btn-danger" style="padding:6px 14px;" onclick="closeCodex()">✖ 關閉</button>
+    </div>
+    <div class="codex-tabs">
+      <button class="codex-tab active" id="tabHeroes" onclick="renderCodexTab('heroes')">🦸‍♂️ 全英雄圖鑑 (17位)</button>
+      <button class="codex-tab" id="tabTraits" onclick="renderCodexTab('traits')">🔗 羈絆說明 (8大陣營)</button>
+      <button class="codex-tab" id="tabAugments" onclick="renderCodexTab('augments')">⚡ 海克斯增幅 (13款)</button>
+    </div>
+    <div id="codexBody" style="text-align:left; max-height:68vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div id="customTooltip"></div>
+
+<script src="data.js"></script>
+<script src="engine.js"></script>
+</body>
+</html>
