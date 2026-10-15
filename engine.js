@@ -1,3 +1,40 @@
+// ================= 0. 自動注入 v3.2 專屬 UI 樣式 (確保血條與折疊說明 100% 生效) =================
+(function injectV32Styles() {
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .skill-title-bar { font-size: 0.9rem; font-weight: bold; color: #f6e05e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+    .skill-bullets { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+    .skill-bullet-item { display: flex; flex-direction: column; gap: 2px; padding: 4px 8px 4px 10px; border-left: 3px solid #4e5058; background: rgba(17, 19, 25, 0.55); border-radius: 0 6px 6px 0; text-align: left; }
+    .bullet-label { font-size: 0.75rem; font-weight: bold; letter-spacing: 0.3px; }
+    .bullet-desc { font-size: 0.84rem; color: #e2e8f0; line-height: 1.35; }
+    .skill-bullet-item.b-dmg   { border-left-color: #f87171; }
+    .skill-bullet-item.b-heal  { border-left-color: #4ade80; }
+    .skill-bullet-item.b-mp    { border-left-color: #60a5fa; }
+    .skill-bullet-item.b-buff  { border-left-color: #facc15; }
+    .skill-bullet-item.b-crit  { border-left-color: #facc15; }
+    .skill-bullet-item.b-event { border-left-color: #c084fc; }
+    .skill-bullet-item.b-nerf  { border-left-color: #fb923c; }
+    .b-dmg-text   { color: #f87171 !important; font-weight: bold; }
+    .b-heal-text  { color: #4ade80 !important; font-weight: bold; }
+    .b-mp-text    { color: #60a5fa !important; font-weight: bold; }
+    .b-buff-text  { color: #facc15 !important; font-weight: bold; }
+    .b-crit-text  { color: #facc15 !important; font-weight: bold; }
+    .b-event-text { color: #c084fc !important; font-weight: bold; }
+    .b-nerf-text  { color: #fb923c !important; font-weight: bold; }
+    .toggle-desc-btn { background: transparent !important; border: none !important; color: #8b92a5 !important; font-size: 0.76rem; cursor: pointer; text-align: left; padding: 4px 0; display: flex; align-items: center; gap: 4px; margin-top: 2px; font-weight: bold; }
+    .toggle-desc-btn:hover { color: #fff !important; }
+    .full-desc-box { font-size: 0.78rem; color: #cbd5e1; background: #111319; padding: 8px 10px; border-radius: 6px; margin-top: 4px; border: 1px solid #2a2e43; line-height: 1.45; display: none !important; text-align: left; }
+    .full-desc-box.show { display: block !important; }
+    .card-footer-stats { display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-weight: bold; border-top: 1px solid #2a2e43; padding-top: 8px; margin-top: 8px; flex-wrap: nowrap; gap: 4px; }
+    .card-footer-stats span { white-space: nowrap; }
+    .stat-hp  { color: #4ade80; }
+    .stat-atk { color: #f87171; }
+    .stat-spd { color: #facc15; }
+    .stat-mp  { color: #60a5fa; }
+  `;
+  document.head.appendChild(style);
+})();
+
 // ================= 1. 遊戲全局狀態與統計 =================
 let currentStage = 1;
 const maxStage = 5;
@@ -17,6 +54,7 @@ let bankruptAvailable = false;
 let overdriveActive = false;
 let currentRoundNumber = 1;
 let battleStartTime = 0;
+let expandedDescIds = new Set(); // 記住哪些卡片展開了「完整說明」，戰鬥刷新時不會自動跳回！
 
 const tooltipEl = document.getElementById('customTooltip');
 function showTooltip(e, title, desc, lore = '') {
@@ -41,22 +79,25 @@ function showTraitTooltip(e, traitName) {
   if (info) showTooltip(e, `🔗 羈絆：【${traitName}】(${info.req})`, info.desc, info.lore);
 }
 
-// 卡片「完整說明」折疊/展開切換
+// 卡片「完整說明」折疊/展開切換 (支援狀態記憶)
 function toggleFullDesc(cardPrefix, idx, e) {
   if (e) e.stopPropagation();
+  const key = `${cardPrefix}_${idx}`;
   const box = document.getElementById(`${cardPrefix}_desc_${idx}`);
   const btn = document.getElementById(`${cardPrefix}_btn_${idx}`);
   if (!box || !btn) return;
   if (box.classList.contains('show')) {
     box.classList.remove('show');
     btn.innerHTML = `▶ 完整說明`;
+    expandedDescIds.delete(key);
   } else {
     box.classList.add('show');
-    btn.innerHTML = `▼ 完整說明`;
+    btn.innerHTML = `▼ 收起說明`;
+    expandedDescIds.add(key);
   }
 }
 
-// 🎨 智能彩色技能條列渲染器 (自動拆解標題、左側色條、並為關鍵數值上色)
+// 🎨 智能彩色技能條列渲染器
 function highlightSkillNumbers(desc, defaultType) {
   return desc
     .replace(/([+\-]?\d+%?\s*(?:範圍|真實|Apex\s*|神聖|暴衝|毀滅)?傷害)/g, '<span class="b-dmg-text">$1</span>')
