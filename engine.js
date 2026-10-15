@@ -9,8 +9,14 @@ let battleSpeed = 900;
 let isBattling = false;
 let isPausedForEvent = false;
 let nemesisTriggeredThisBattle = false;
+let nemesisEventCompleted = false; // 全局鎖定：完成宿敵事件後不再出現安迪或奧本海默
 let bonusAugmentPending = 0;
 let battleComboLogs = [];
+let visualQueue = []; // 儲存視覺特效佇列，在 updateUI 後渲染避免被覆蓋
+let bankruptAvailable = false;
+let overdriveActive = false;
+let currentRoundNumber = 1;
+let battleStartTime = 0;
 
 // 懸浮視窗控制
 const tooltipEl = document.getElementById('customTooltip');
@@ -42,13 +48,14 @@ function initGame() {
   playerRoster = [];
   playerAugments = [];
   bonusAugmentPending = 0;
+  nemesisEventCompleted = false;
   isBattling = false;
   isPausedForEvent = false;
   clearInterval(battleInterval);
-  document.getElementById('battleLog').innerHTML = '<div class="log-entry">🎮 歡迎來到 **DC BON 全明星自動戰棋 v3.0**！將滑鼠移至技能、羈絆或雙血條上可查看詳細說明。</div>';
+  document.getElementById('battleLog').innerHTML = '<div class="log-entry">🎮 歡迎來到 **DC BON 全明星自動戰棋 v3.1**！戰鬥視窗已支援重點顏色標記：<span class="tag-buff">🟢 BUFF</span> <span class="tag-nerf">🔴 NERF</span> <span class="tag-dmg">⚔️ 傷害</span> <span class="tag-heal">💚 回血</span></div>';
   generateEnemyTeam(currentStage);
   updateUI();
-  showHeroDraft('選擇你的初始英雄 (第 1 關)', '挑選 1 位 Discord 朋友作為開局隊長');
+  showHeroDraft('選擇你的初始英雄 (第 1 關)', '挑選 1 位 Discord 朋友作為開局隊長 (Andy安迪將於第 2 關後解鎖)');
 }
 
 function resetGame() {
@@ -67,7 +74,6 @@ function togglePeekBoard() {
   }
 }
 
-// 動態套用【寶怪回歸】對股票奧本海默的轉職
 function syncBaemonTransformation() {
   const hasBaemon = playerAugments.some(a => a.id === 'aug_baemon');
   playerRoster.forEach(u => {
@@ -87,9 +93,19 @@ function syncBaemonTransformation() {
   });
 }
 
-// ================= 3. 選卡與海克斯增幅 (含現有陣容預覽 & 不重複增幅) =================
+// ================= 3. 選卡與海克斯增幅 (過濾第1關安迪 & 宿敵完成後不再出現) =================
 function getRandomItems(arr, count) {
   return [...arr].sort(() => 0.5 - Math.random()).slice(0, count);
+}
+
+function getEligibleHeroPool(stage, forEnemy = false) {
+  return HERO_POOL.filter(h => {
+    // 規則 1：Andy安迪只會在第 2 關之後出現
+    if (h.minStage && stage < h.minStage) return false;
+    // 規則 2：一旦完成了宿敵事件，安迪與股票奧本海默不再出現於敵方或招募池中
+    if (nemesisEventCompleted && (h.id === 'andy' || h.id === 'stock_opp')) return false;
+    return true;
+  });
 }
 
 function updateDraftOverview() {
@@ -123,7 +139,8 @@ function showHeroDraft(title, subtitle) {
   const grid = document.getElementById('choicesGrid');
   grid.innerHTML = '';
 
-  const choices = getRandomItems(HERO_POOL, 3);
+  const pool = getEligibleHeroPool(currentStage, false);
+  const choices = getRandomItems(pool, 3);
   choices.forEach(hero => {
     const existing = playerRoster.find(h => h.id === hero.id);
     const card = document.createElement('div');
@@ -156,7 +173,7 @@ function selectHero(heroTemplate) {
     existing.stars += 1;
     existing.baseHp = Math.round(existing.baseHp * 1.35);
     existing.baseAtk = Math.round(existing.baseAtk * 1.35);
-    addLog(`⭐ <strong>${existing.icon} ${existing.name}</strong> 升上了 <strong>★${existing.stars} 星</strong>！`, 'log-skill');
+    addLog(`⭐ <strong>${existing.icon} ${existing.name}</strong> <span class="tag-buff">🟢 升星 ★${existing.stars}</span> 基礎生命與攻擊力 +35%！`);
     proceedAfterHeroSelection();
   } else if (playerRoster.length < 4) {
     playerRoster.push({
@@ -167,7 +184,7 @@ function selectHero(heroTemplate) {
       baseAtk: heroTemplate.atk
     });
     syncBaemonTransformation();
-    addLog(`🎉 招募了新隊員：<strong>${heroTemplate.icon} ${heroTemplate.name}</strong>！`);
+    addLog(`🎉 招募新隊員：<strong>${heroTemplate.icon} ${heroTemplate.name}</strong>！`);
     proceedAfterHeroSelection();
   } else {
     showReplaceModal(heroTemplate);
@@ -227,7 +244,6 @@ function showAugmentDraft(isBonus = false) {
   const grid = document.getElementById('choicesGrid');
   grid.innerHTML = '';
 
-  // 嚴格過濾：已選過的增幅絕不重複出現；【寶怪回歸】需有股票奧本海默
   const eligibleAugments = AUGMENT_POOL.filter(aug => {
     if (playerAugments.some(a => a.id === aug.id)) return false;
     if (aug.reqHero && !playerRoster.some(u => u.id === aug.reqHero)) return false;
@@ -248,7 +264,7 @@ function showAugmentDraft(isBonus = false) {
     card.onclick = () => {
       playerAugments.push(aug);
       syncBaemonTransformation();
-      addLog(`⚡ 獲得海克斯增幅：<strong>${aug.name}</strong>！`, 'log-synergy');
+      addLog(`⚡ 獲得海克斯增幅：<span class="tag-event">${aug.name}</span>！`);
       if (bonusAugmentPending > 0) {
         bonusAugmentPending--;
         showAugmentDraft(true);
@@ -264,20 +280,23 @@ function showAugmentDraft(isBonus = false) {
   overlay.classList.remove('hidden');
 }
 
-// ================= 4. 鏡像對手生成 (含 35% 宿命引力) & 戰前數值計算 =================
+// ================= 4. 鏡像對手生成 (第2關起才有安迪 & 宿敵完成後鎖定) =================
 function generateEnemyTeam(stage) {
   const enemyCount = Math.min(stage, 4);
-  let templates = getRandomItems(HERO_POOL, enemyCount);
+  const pool = getEligibleHeroPool(stage, true);
+  let templates = getRandomItems(pool, enemyCount);
 
-  // 【宿命引力 35%】：若我方有股票奧本海默或安迪，且未合體，敵方有 35% 機率刷出另一位宿敵
+  // 【宿命引力 35%】：僅在第 2 關之後、且尚未完成宿敵事件時才會觸發
   const allyHasOpp = playerRoster.some(u => u.id === 'stock_opp');
   const allyHasAndy = playerRoster.some(u => u.id === 'andy');
-  if ((allyHasOpp || allyHasAndy) && Math.random() < 0.35) {
+  if (stage >= 2 && !nemesisEventCompleted && (allyHasOpp || allyHasAndy) && Math.random() < 0.35) {
     const nemesisId = allyHasOpp ? 'andy' : 'stock_opp';
     if (!templates.some(t => t.id === nemesisId)) {
       const nemesisTemplate = HERO_POOL.find(h => h.id === nemesisId);
-      templates[0] = nemesisTemplate; // 放入敵方陣容
-      addLog(`⚡ <strong>【宿命引力】</strong> 空氣中瀰漫著火藥味！你在對面陣營發現了宿敵 <strong>${nemesisTemplate.icon} ${nemesisTemplate.name}</strong> 的身影...（提示：將宿敵放上 1 號位並等待安迪完成儀式！）`, 'log-synergy');
+      if (nemesisTemplate) {
+        templates[0] = nemesisTemplate;
+        addLog(`<span class="tag-event">⚡ 宿命引力</span> 對面陣營出現了宿敵 <strong>${nemesisTemplate.icon} ${nemesisTemplate.name}</strong>！（提示：將你的宿敵擺在 1 號位等待安迪完成儀式！）`);
+      }
     }
   }
 
@@ -295,7 +314,7 @@ function generateEnemyTeam(stage) {
       mp: 0, maxMp: t.maxMp,
       isAlly: false,
       ritualCount: t.id === 'andy' ? 0 : null,
-      inRitual: t.id === 'andy',
+      inRitual: t.id === 'andy' && enemyCount > 1,
       sisMarks: 0,
       petSingleBar: false,
       isWeakened: false,
@@ -326,7 +345,6 @@ function prepareUnitsForStage() {
     let spd = u.spd;
     let startMp = 0;
 
-    // 【S.I.S】v3.0 平衡調整：3人時數值 1.25 倍，移除自動回血
     if ((syn['S.I.S'] || 0) >= 3 && u.traits.includes('S.I.S')) {
       maxHp = Math.round(maxHp * 1.25);
       atk = Math.round(atk * 1.25);
@@ -354,6 +372,11 @@ function prepareUnitsForStage() {
     if (hasAug('aug_shield') && idx === 0) {
       maxHp += 350;
     }
+    // 新海克斯：【只要開槓桿就好了】（後排 +30 MP、+35% 傷，扣 25% 最大生命、易傷 15%）
+    if (hasAug('aug_leverage') && idx > 0) {
+      startMp += 30;
+      maxHp = Math.round(maxHp * 0.75);
+    }
 
     u.maxHp = maxHp;
     u.hp = maxHp;
@@ -361,7 +384,8 @@ function prepareUnitsForStage() {
     u.curSpd = spd;
     u.mp = Math.min(u.maxMp, startMp);
     u.isAlly = true;
-    u.inRitual = (u.id === 'andy');
+    // 若場上只有安迪 1 人時不鎖定儀式，有隊友時才進行儀式
+    u.inRitual = (u.id === 'andy' && playerRoster.length > 1);
     u.ritualCount = (u.id === 'andy') ? (hasAug('aug_oil') ? 1 : 0) : 0;
     u.sisMarks = 0;
     u.petSingleBar = petSingleBar;
@@ -381,16 +405,16 @@ function updateDualHealthState(unit) {
     unit.isWeakened = true;
     unit.atk = Math.max(20, Math.round(unit.atk * 0.8));
     unit.curSpd = Math.max(60, unit.curSpd - 20);
-    addLog(`⚠️ <strong>${unit.name}</strong> 跌破 50% 血量！前半【${unit.dualHpPet}】青色血條耗盡，進入<strong>弱化狀態 (攻-20%、速-20)</strong>！`, 'log-dmg');
+    addLog(`⚠️ <strong>${unit.name}</strong> 跌破50%血量！<span class="tag-nerf">🔴 弱化: 攻-20% 速-20</span>`);
   } else if (ratio >= 0.5 && unit.isWeakened) {
     unit.isWeakened = false;
     unit.atk = Math.round(unit.atk * 1.25);
     unit.curSpd += 20;
-    addLog(`✨ <strong>${unit.name}</strong> 生命恢復至 50% 以上！【${unit.dualHpPet}】青色血條重啟，恢復<strong>強化狀態</strong>！`, 'log-heal');
+    addLog(`✨ <strong>${unit.name}</strong> 恢復至50%血量以上！<span class="tag-buff">🟢 重啟${unit.dualHpPet}強化</span>`);
   }
 }
 
-// ================= 5. 介面渲染與視覺特效 (含精準 50/50 雙血條) =================
+// ================= 5. 介面渲染與視覺特效佇列 (修復動畫覆蓋問題) =================
 function moveUnit(index, dir) {
   if (isBattling) return;
   const targetIdx = index + dir;
@@ -402,31 +426,41 @@ function moveUnit(index, dir) {
   updateUI();
 }
 
-function triggerVisualEffect(unit, type, text = '') {
-  const roster = unit.isAlly ? playerRoster : enemyRoster;
-  const idx = roster.indexOf(unit);
-  if (idx === -1) return;
-  const card = document.getElementById(`${unit.isAlly ? 'ally' : 'enemy'}_card_${idx}`);
-  if (!card) return;
+function queueVisualEffect(unit, type, text = '') {
+  visualQueue.push({ unit, type, text });
+}
 
-  if (type === 'lunge') {
-    const cls = unit.isAlly ? 'anim-lunge-ally' : 'anim-lunge-enemy';
-    card.classList.remove(cls);
-    void card.offsetWidth;
-    card.classList.add(cls);
-  } else if (type === 'hit') {
-    card.classList.remove('anim-hit');
-    void card.offsetWidth;
-    card.classList.add('anim-hit');
-  }
+function flushVisualQueue() {
+  if (visualQueue.length === 0) return;
+  const currentBatch = [...visualQueue];
+  visualQueue = [];
 
-  if (text) {
-    const floatEl = document.createElement('div');
-    floatEl.className = `float-text ${type === 'heal' ? 'float-heal' : (text.includes('CRIT') ? 'float-crit' : 'float-dmg')}`;
-    floatEl.innerText = text;
-    card.appendChild(floatEl);
-    setTimeout(() => floatEl.remove(), 850);
-  }
+  currentBatch.forEach(({ unit, type, text }) => {
+    const roster = unit.isAlly ? playerRoster : enemyRoster;
+    const idx = roster.indexOf(unit);
+    if (idx === -1) return;
+    const card = document.getElementById(`${unit.isAlly ? 'ally' : 'enemy'}_card_${idx}`);
+    if (!card) return;
+
+    if (type === 'lunge') {
+      const cls = unit.isAlly ? 'anim-lunge-ally' : 'anim-lunge-enemy';
+      card.classList.remove(cls);
+      void card.offsetWidth;
+      card.classList.add(cls);
+    } else if (type === 'hit') {
+      card.classList.remove('anim-hit');
+      void card.offsetWidth;
+      card.classList.add('anim-hit');
+    }
+
+    if (text) {
+      const floatEl = document.createElement('div');
+      floatEl.className = `float-text ${type === 'heal' ? 'float-heal' : (text.includes('CRIT') ? 'float-crit' : 'float-dmg')}`;
+      floatEl.innerText = text;
+      card.appendChild(floatEl);
+      setTimeout(() => floatEl.remove(), 850);
+    }
+  });
 }
 
 function updateUI() {
@@ -467,6 +501,9 @@ function updateUI() {
 
   renderTeamGrid('allyGrid', playerRoster, true);
   renderTeamGrid('enemyGrid', enemyRoster, false);
+
+  // DOM 繪製完成後，立即播放本回合的衝刺、震動與飄浮傷害數字！
+  flushVisualQueue();
 }
 
 function renderTeamGrid(containerId, roster, isAlly) {
@@ -477,12 +514,12 @@ function renderTeamGrid(containerId, roster, isAlly) {
     const mpPct = Math.max(0, Math.min(100, Math.round((u.mp / u.maxMp) * 100)));
     const hasDualBar = u.dualHpPet && !u.petSingleBar;
 
-    // 精準掛勾前 50% (寵物青色) 與後 50% (本人綠色)
     const baseHalfWidth = Math.min(50, hpPct);
     const petHalfWidth = Math.max(0, hpPct - 50);
 
     let cardCls = `unit-card ${idx === 0 ? 'frontline' : ''} ${u.hp <= 0 ? 'dead' : ''} ${u.inRitual ? 'ritual-mode' : ''}`;
     if (u.dualHpPet) cardCls += u.isWeakened ? ' pet-weakened' : ' pet-buffed';
+    if (isAlly && overdriveActive && u.hp > 0) cardCls += ' overdrive-mode';
 
     const card = document.createElement('div');
     card.className = cardCls;
@@ -507,6 +544,7 @@ function renderTeamGrid(containerId, roster, isAlly) {
       }
     }
 
+    if (isAlly && overdriveActive && u.hp > 0) statusTag += ' | 🔥爆肝+50%';
     if (u.sisMarks > 0) statusTag += ` | 💅印記x${u.sisMarks}`;
 
     const safeSkillDesc = u.skillDesc.replace(/'/g, "\\'");
@@ -560,56 +598,56 @@ function renderTeamGrid(containerId, roster, isAlly) {
   });
 }
 
-// ================= 6. 宿敵彩蛋與 3盤2勝 3D6 骰子單挑系統 =================
+// ================= 6. 宿敵彩蛋與 3盤2勝 3D6 骰子單挑系統 (含硬核永久懲罰) =================
+let currentNemesisContext = null;
+
 function checkNemesisEasterEgg(descendingAndy) {
-  if (nemesisTriggeredThisBattle) return false;
+  if (nemesisTriggeredThisBattle || nemesisEventCompleted) return false;
 
   const allyFront = playerRoster[0];
   if (!allyFront || allyFront.hp <= 0) return false;
 
-  // 條件 A：我方 1 號位是股票奧本海默，且場上(我方或敵方)的 Andy安迪 完成儀式降臨
   const condA = (allyFront.id === 'stock_opp' && descendingAndy.id === 'andy');
-  // 條件 B：我方 1 號位是剛完成儀式降臨的 Andy安迪，且場上(我方或敵方)有存活的股票奧本海默
   const oppUnit = [...playerRoster, ...enemyRoster].find(u => u.id === 'stock_opp' && u.hp > 0);
   const condB = (allyFront.id === 'andy' && descendingAndy === allyFront && oppUnit);
 
   if (!condA && !condB) return false;
 
   nemesisTriggeredThisBattle = true;
+  nemesisEventCompleted = true; // 鎖定全局，往後關卡不再出現安迪與奧本海默
   isPausedForEvent = true;
 
   const myHero = condA ? allyFront : descendingAndy;
   const rivalHero = condA ? descendingAndy : oppUnit;
-  const isSameTeam = (myHero.isAlly === rivalHero.isAlly);
+  currentNemesisContext = { myHero, rivalHero, isSameTeam: myHero.isAlly === rivalHero.isAlly };
 
-  showNemesisChoiceModal(myHero, rivalHero, isSameTeam);
+  showNemesisChoiceModal();
   return true;
 }
 
-function showNemesisChoiceModal(myHero, rivalHero, isSameTeam) {
+function showNemesisChoiceModal() {
   const modal = document.getElementById('nemesisModal');
   const content = document.getElementById('nemesisContent');
   modal.classList.remove('hidden');
 
   content.innerHTML = `
     <h2 class="modal-title" style="color:var(--discord-yellow);">🚨 隱藏宿敵劇情：【華爾街的終局對決】</h2>
-    <p class="modal-sub">當站在 1 號位的 <strong>📈 股票奧本海默</strong> 遇上攜帶負油價隕石降臨的 <strong>🛢️ Andy安迪</strong>，兩大宿敵終於正面碰頭！</p>
+    <p class="modal-sub">當站在 1 號位的 <strong>📈 股票奧本海默</strong> 遇上現身戰場的 <strong>🛢️ Andy安迪</strong>，兩大宿敵終於正面碰頭！（本事件每局僅觸發一次）</p>
     <div style="background:#1e1f22; padding:15px; border-radius:8px; margin-bottom:18px; text-align:left; font-size:0.88rem; line-height:1.6;">
       <p>💬 <strong>股票奧本海默</strong>：「安迪！你的末日負油價理論在我的百倍槓桿面前一文不值！」</p>
-      <p>💬 <strong>Andy安迪</strong>：「奧本海默！柏克末日已經降臨，今天我們就用華爾街的方式做個了斷！」</p>
+      <p>💬 <strong>Andy安迪</strong>：「奧本海默！柏克末日已經降臨，今天我們就賭上性命做個了斷！」</p>
     </div>
     <div class="choices-grid">
       <div class="choice-card" style="border-color:var(--discord-red);" onclick="startDiceDuel()">
         <div>
-          <h4><span>🗡️ 選擇一：【戰到死 (3盤2勝擲骰單挑)】</span></h4>
+          <h4><span>🗡️ 選擇一：【戰到死 (3盤2勝 3D6 硬核賭命單挑)】</span></h4>
           <div class="choice-desc">
-            兩人立刻在場中央展開<strong>「三盤兩勝制・3顆6面骰(3D6)鐵籠單挑」</strong>！<br><br>
-            • <strong>勝者</strong>：留在我方陣營、滿血恢復、<strong>攻擊力永久翻倍 (2x) 且 +50 MP</strong>！<br>
-            • <strong>敗者</strong>：當場倒地退場！<br>
-            • <strong>額外大獎</strong>：本關獲勝後可<strong>額外多拿 1 個海克斯增幅</strong>！
+            兩人立刻展開<strong>「三盤兩勝制・3顆6面骰(3D6)鐵籠死鬥」</strong>！<br><br>
+            • <strong>若我方獲勝</strong>：敵方宿敵當場暴斃！我方勝者滿血、<strong>攻擊力永久翻倍 (2x) 且 +50 MP</strong>，過關後<strong>額外多拿 1 個海克斯增幅</strong>！<br>
+            • <strong style="color:#f87171;">⚠️ 敗北硬核懲罰</strong>：落敗的一方將<strong>直接從隊伍中永久戰死移除（消失）</strong>！若敵方宿敵獲勝，敵方宿敵將保留 50% 血量繼續作戰，我方須靠剩餘隊友硬打！
           </div>
         </div>
-        <div class="choice-stats" style="color:#f87171;">🔥 進入 3D6 骰子決鬥演出</div>
+        <div class="choice-stats" style="color:#f87171;">🔥 高風險高回報・敗者永久除名</div>
       </div>
 
       <div class="choice-card" style="border-color:var(--discord-yellow);" onclick="executeNemesisPeace()">
@@ -626,23 +664,19 @@ function showNemesisChoiceModal(myHero, rivalHero, isSameTeam) {
   `;
 }
 
-// 執行【大和解】：合體為【安迪與奧本海默】
 function executeNemesisPeace() {
   battleComboLogs.push('🤝 觸發【宿敵大和解】：合體誕生神卡「☯️ 安迪與奧本海默」');
-  addLog(`☯️ <strong>【世紀大和解】</strong> 股票奧本海默與 Andy安迪 一笑泯恩仇！合體進化為<strong>【☯️ 安迪與奧本海默】</strong>！`, 'log-skill');
+  addLog(`<span class="tag-event">☯️ 世紀大和解</span> 股票奧本海默與 Andy安迪 合體進化為<strong>【☯️ 安迪與奧本海默】</strong>！`);
 
-  // 計算合體星級 (取最高星級)
   const existingAllyOpp = playerRoster.find(u => u.id === 'stock_opp');
   const existingAllyAndy = playerRoster.find(u => u.id === 'andy');
   const fusedStars = Math.max(existingAllyOpp ? existingAllyOpp.stars : 1, existingAllyAndy ? existingAllyAndy.stars : 1);
   const starMult = Math.pow(1.35, fusedStars - 1);
 
-  // 若敵方有安迪或奧本海默參與此次宿敵事件，從敵方移除或擊倒
   enemyRoster.forEach(e => {
     if (e.id === 'andy' || e.id === 'stock_opp') e.hp = 0;
   });
 
-  // 移除我方原本的第二人（若同隊有兩人），並將 1 號位替換為合體神卡
   playerRoster = playerRoster.filter(u => u.id !== 'stock_opp' && u.id !== 'andy');
   const fusedUnit = {
     ...FUSED_HERO_TEMPLATE,
@@ -669,7 +703,6 @@ function executeNemesisPeace() {
   updateUI();
 }
 
-// 執行【戰到死】：3盤2勝 3D6 骰子單挑介面與動畫
 let duelState = { round: 1, oppWins: 0, andyWins: 0, rolling: false };
 
 function startDiceDuel() {
@@ -682,8 +715,8 @@ function renderDiceDuelUI(statusMsg, oppDice = ['🎲','🎲','🎲'], andyDice 
   const isFinished = duelState.oppWins >= 2 || duelState.andyWins >= 2;
 
   content.innerHTML = `
-    <h2 class="modal-title" style="color:var(--discord-red);">🎲 華爾街鐵籠死鬥（三盤兩勝・3D6 擲骰單挑）</h2>
-    <p class="modal-sub">規則說明：每盤雙方各擲出 <strong>3 顆 6 面骰（點數總和 3～18 點）</strong>，點數高者拿下一盤（平手重擲）。先贏得 2 盤者獲勝留在我方並獲得雙倍攻擊力，敗者當場倒地！</p>
+    <h2 class="modal-title" style="color:var(--discord-red);">🎲 華爾街鐵籠死鬥（三盤兩勝・3D6 賭命單挑）</h2>
+    <p class="modal-sub">規則：每盤雙方各擲出 <strong>3 顆 6 面骰（3～18 點）</strong>。先贏 2 盤者勝出，<strong>敗者將當場戰死並永久從隊伍除名！</strong></p>
     
     <div style="margin: 10px 0;">
       <span class="score-board">📈 奧本海默 【 ${duelState.oppWins}  :  ${duelState.andyWins} 】 🛢️ Andy安迪 （第 ${Math.min(3, duelState.round)} 盤）</span>
@@ -719,7 +752,7 @@ function renderDiceDuelUI(statusMsg, oppDice = ['🎲','🎲','🎲'], andyDice 
       </button>
     ` : `
       <button class="btn btn-secondary" style="width:260px; font-size:1.05rem;" onclick="finishDiceDuel()">
-        ⚔️ 領取強化並返回戰場！
+        ⚔️ 接受裁決並返回戰場！
       </button>
     `}
   `;
@@ -738,7 +771,6 @@ function rollDuelRound() {
     let oppSum = oppRolls.reduce((a,b) => a+b, 0);
     let andySum = andyRolls.reduce((a,b) => a+b, 0);
 
-    // 避免平手拖延，若同分則微調最後一顆
     if (oppSum === andySum) {
       if (Math.random() < 0.5) { oppRolls[2] = Math.min(6, oppRolls[2] + 1); oppSum++; }
       else { andyRolls[2] = Math.min(6, andyRolls[2] + 1); andySum++; }
@@ -755,57 +787,56 @@ function rollDuelRound() {
 
     if (duelState.oppWins >= 2 || duelState.andyWins >= 2) {
       const winnerName = duelState.oppWins >= 2 ? '📈 股票奧本海默' : '🛢️ Andy安迪';
-      msg += `<br><span style="color:var(--discord-yellow);">🏆 決鬥結束！【${winnerName}】以 ${duelState.oppWins}:${duelState.andyWins} 贏得死鬥，留在我方獲得雙倍攻擊力，並鎖定過關額外海克斯獎勵！</span>`;
+      const loserName = duelState.oppWins >= 2 ? '🛢️ Andy安迪' : '📈 股票奧本海默';
+      msg += `<br><span style="color:var(--discord-yellow);">🏆 決鬥結束！【${winnerName}】以 ${duelState.oppWins}:${duelState.andyWins} 勝出！【${loserName}】遭到永久除名！</span>`;
     } else {
       duelState.round++;
     }
 
     renderDiceDuelUI(msg, oppRolls, andyRolls, oppSum, andySum);
-  }, 650);
+  }, 600);
 }
 
+// 選項 1 硬核懲罰結算：我方敗者直接從 playerRoster 永久刪除！
 function finishDiceDuel() {
   const oppWon = duelState.oppWins >= 2;
   const winnerId = oppWon ? 'stock_opp' : 'andy';
   const loserId = oppWon ? 'andy' : 'stock_opp';
 
-  bonusAugmentPending += 1;
-  battleComboLogs.push(`🎲 觸發【宿敵 3D6 死鬥】：${oppWon ? '股票奧本海默' : 'Andy安迪'} 勝出 (${duelState.oppWins}:${duelState.andyWins}) 獲得雙倍狂暴與額外海克斯`);
-
-  // 敗者全部當場倒地 (無論在敵方或我方)
-  [...playerRoster, ...enemyRoster].forEach(u => {
-    if (u.id === loserId) u.hp = 0;
-  });
-
-  // 確保勝者留在我方陣營並獲得雙倍強化
-  let myWinner = playerRoster.find(u => u.id === winnerId);
-  if (!myWinner) {
-    // 若勝者原本在敵方，直接折服加入我方 1 號位取代倒地的敗者
-    const template = HERO_POOL.find(h => h.id === winnerId);
-    myWinner = {
-      ...template,
-      traits: [...template.traits],
-      stars: 1,
-      baseHp: template.hp, baseAtk: template.atk,
-      maxHp: template.hp, hp: template.hp,
-      atk: template.atk, spd: template.spd, curSpd: template.spd,
-      mp: 0, maxMp: template.maxMp,
-      isAlly: true, inRitual: false, sisMarks: 0,
-      stats: { dmgDealt: 0, dmgTaken: 0, healed: 0 }
-    };
-    const loserIdx = playerRoster.findIndex(u => u.id === loserId);
-    if (loserIdx !== -1) playerRoster[loserIdx] = myWinner;
-    else playerRoster.unshift(myWinner);
-    // 同時將敵方該勝者單位移除避免分身
-    enemyRoster.forEach(e => { if (e.id === winnerId) e.hp = 0; });
+  // 1. 檢查我方是否有敗者：若有，直接從 playerRoster 永久戰死移除！
+  const myLoserIdx = playerRoster.findIndex(u => u.id === loserId);
+  if (myLoserIdx !== -1) {
+    const removedHero = playerRoster[myLoserIdx];
+    playerRoster.splice(myLoserIdx, 1);
+    addLog(`💀 <span class="tag-nerf">🔴 死鬥戰死除名</span> 我方的 <strong>${removedHero.icon} ${removedHero.name}</strong> 在 3D6 決鬥落敗，已永久移出隊伍！`);
   }
 
-  myWinner.inRitual = false;
-  myWinner.hp = myWinner.maxHp;
-  myWinner.atk = myWinner.atk * 2;
-  myWinner.mp = Math.min(myWinner.maxMp, myWinner.mp + 50);
+  // 2. 檢查敵方是否有敗者：若有，敵方敗者當場暴斃
+  enemyRoster.forEach(e => {
+    if (e.id === loserId) e.hp = 0;
+  });
 
-  addLog(`🎲 <strong>【死鬥裁決】${myWinner.icon} ${myWinner.name}</strong> 在 3D6 骰子決鬥中勝出！敗者當場倒地，勝者滿血狂暴化（<strong>攻擊力翻倍至 ${myWinner.atk}</strong>）並獲得額外海克斯增幅獎勵！`, 'log-skill');
+  // 3. 檢查勝者歸屬
+  const myWinner = playerRoster.find(u => u.id === winnerId);
+  const enemyWinner = enemyRoster.find(e => e.id === winnerId && e.hp > 0);
+
+  if (myWinner) {
+    // 我方獲勝！滿血 + 永久基礎與當前攻擊力翻倍 + 額外海克斯增幅
+    myWinner.inRitual = false;
+    myWinner.hp = myWinner.maxHp;
+    myWinner.baseAtk = myWinner.baseAtk * 2;
+    myWinner.atk = myWinner.atk * 2;
+    myWinner.mp = Math.min(myWinner.maxMp, myWinner.mp + 50);
+    bonusAugmentPending += 1;
+    battleComboLogs.push(`🎲 【宿敵死鬥大勝】：我方 ${myWinner.name} 勝出，永久雙倍攻擊力並獲額外海克斯！`);
+    addLog(`🏆 <span class="tag-buff">🟢 死鬥大勝</span> 我方 <strong>${myWinner.icon} ${myWinner.name}</strong> 贏得決鬥！滿血恢復、<span class="tag-buff">🟢 攻擊力永久翻倍 (${myWinner.atk})</span> 並鎖定額外海克斯獎勵！`);
+  } else if (enemyWinner) {
+    // 敵方宿敵獲勝（選項 1 硬核懲罰）：敵方勝者保留 50% 半血繼續留在場上，我方靠剩餘隊友硬打！
+    enemyWinner.inRitual = false;
+    enemyWinner.hp = Math.max(1, Math.round(enemyWinner.maxHp * 0.5));
+    battleComboLogs.push(`💀 【宿敵死鬥落敗】：我方宿敵永久戰死除名，敵方 ${enemyWinner.name} 半血存留！`);
+    addLog(`⚠️ <span class="tag-nerf">🔴 死鬥落敗懲罰</span> 敵方 <strong>${enemyWinner.icon} ${enemyWinner.name}</strong> 贏得決鬥並保留 50% 血量（${enemyWinner.hp} HP）繼續作戰，我方須靠剩餘隊員硬打！`);
+  }
 
   document.getElementById('nemesisModal').classList.add('hidden');
   isPausedForEvent = false;
@@ -833,6 +864,12 @@ function startBattle() {
   isPausedForEvent = false;
   nemesisTriggeredThisBattle = false;
   battleComboLogs = [];
+  visualQueue = [];
+  bankruptAvailable = playerAugments.some(a => a.id === 'aug_bankrupt');
+  overdriveActive = false;
+  currentRoundNumber = 1;
+  battleStartTime = Date.now();
+
   document.getElementById('startBattleBtn').disabled = true;
   prepareUnitsForStage();
   updateUI();
@@ -841,14 +878,14 @@ function startBattle() {
   addLog(`🔔 <strong>=== 第 ${currentStage} 關戰鬥開始！ ===</strong>`);
 
   if ((syn['S.I.S'] || 0) >= 3) {
-    addLog(`💅 <strong>【S.I.S 羈絆啟動】</strong> 全體 S.I.S 屬性 1.25x，並解鎖追加技【獨立自主】！`, 'log-sis');
+    addLog(`💅 <span class="tag-buff">🟢 S.I.S 啟動</span> 全體 S.I.S 屬性 1.25x，並解鎖追加技【獨立自主】！`);
   }
   if ((syn['貓狗領導'] || 0) >= 2) {
-    addLog(`🐾 <strong>【貓狗領導啟動】</strong> 雙血量合為單一強化血條，免疫弱化狀態！`, 'log-synergy');
+    addLog(`🐾 <span class="tag-buff">🟢 貓狗領導</span> 雙血量合為單一強化血條，免疫弱化狀態！`);
   }
 
   if (playerAugments.some(a => a.id === 'aug_glitch')) {
-    addLog(`💻 <strong>【Mobius & Ultron Glitch】</strong> 觸發！敵方全體系統崩潰扣除 20% 生命與速度！`, 'log-synergy');
+    addLog(`💻 <span class="tag-nerf">🔴 Glitch 觸發</span> 敵方全體扣除 20% 生命與 15 點速度！`);
     enemyRoster.forEach(e => {
       e.hp = Math.max(1, Math.round(e.hp * 0.8));
       e.curSpd = Math.max(50, (e.curSpd || e.spd) - 15);
@@ -860,7 +897,7 @@ function startBattle() {
   let turnIndex = 0;
 
   battleInterval = setInterval(() => {
-    if (isPausedForEvent) return; // 等待宿敵視窗操作
+    if (isPausedForEvent) return;
 
     const aliveAllies = playerRoster.filter(u => u.hp > 0);
     const aliveEnemies = enemyRoster.filter(u => u.hp > 0);
@@ -873,9 +910,18 @@ function startBattle() {
       return;
     }
 
+    // 檢查新海克斯：【伺服器過載 / 死線戰神】(第 4 輪或滿 15 秒觸發爆肝 +50% 最終傷害)
+    const elapsedSec = (Date.now() - battleStartTime) / 1000;
+    if (!overdriveActive && playerAugments.some(a => a.id === 'aug_overdrive') && (currentRoundNumber >= 4 || elapsedSec >= 15)) {
+      overdriveActive = true;
+      battleComboLogs.push('🔥 觸發【伺服器過載 / 死線戰神】：全隊進入爆肝狀態最終傷害 +50%');
+      addLog(`🔥 <span class="tag-buff">🟢 死線戰神・爆肝狀態啟動</span> 戰鬥進入白熱化！我方全體造成的最終傷害永久提升 <strong>+50%</strong>！`);
+    }
+
     if (turnIndex >= turnOrder.length) {
       turnOrder = [...aliveAllies, ...aliveEnemies].sort((a, b) => (b.curSpd || b.spd) - (a.curSpd || a.spd));
       turnIndex = 0;
+      currentRoundNumber++;
     }
 
     const actor = turnOrder[turnIndex];
@@ -884,8 +930,16 @@ function startBattle() {
     if (!actor || actor.hp <= 0) return;
 
     if (actor.inRitual) {
-      addLog(`🔮 <strong>${actor.name}</strong> 正在場外進行柏克末日儀式 (${actor.ritualCount}/3)...`);
-      return;
+      // 若隊友全數陣亡只剩安迪一人，安迪被迫中斷儀式直接現身參戰！
+      const teamAlive = (actor.isAlly ? playerRoster : enemyRoster).filter(u => u.hp > 0);
+      if (teamAlive.length <= 1) {
+        actor.inRitual = false;
+        addLog(`🕯️ <strong>${actor.name}</strong> 因隊友全滅被迫提早現身參戰！`);
+        if (checkNemesisEasterEgg(actor)) return;
+      } else {
+        addLog(`🔮 <strong>${actor.name}</strong> 正在場外進行柏克末日儀式 (${actor.ritualCount}/3)...`);
+        return;
+      }
     }
 
     executeUnitTurn(actor);
@@ -899,41 +953,81 @@ function getTarget(opponents) {
   const fallback = opponents.filter(u => u.hp > 0);
   if (fallback.length > 0) {
     fallback[0].inRitual = false;
+    checkNemesisEasterEgg(fallback[0]);
     return fallback[0];
   }
   return null;
 }
 
-function dealDamage(attacker, target, rawDmg) {
+function dealDamage(attacker, target, rawDmg, isTrueDamage = false) {
   let dmg = Math.round(rawDmg);
   let isCrit = false;
 
-  if (attacker.traits && attacker.traits.includes('S.I.S') && (target.sisMarks || 0) > 0) {
-    dmg = Math.round(dmg * (1 + 0.05 * target.sisMarks));
+  if (!isTrueDamage) {
+    if (attacker.traits && attacker.traits.includes('S.I.S') && (target.sisMarks || 0) > 0) {
+      dmg = Math.round(dmg * (1 + 0.05 * target.sisMarks));
+    }
+
+    if (attacker.isAlly) {
+      // 【只要開槓桿就好了】：後排增傷 +35%
+      if (playerAugments.some(a => a.id === 'aug_leverage') && playerRoster.indexOf(attacker) > 0) {
+        dmg = Math.round(dmg * 1.35);
+      }
+      // 【伺服器過載 / 死線戰神】：最終傷害 +50%
+      if (overdriveActive) {
+        dmg = Math.round(dmg * 1.50);
+      }
+
+      const shortAug = playerAugments.some(a => a.id === 'aug_short');
+      const icyBuff = playerRoster.some(u => u.id === 'icy_sis' && u.hp > 0 && !u.isWeakened);
+      const critChance = (shortAug ? 0.35 : 0) + (icyBuff ? 0.20 : 0);
+      if (critChance > 0 && Math.random() < critChance) {
+        dmg = Math.round(dmg * 1.6);
+        isCrit = true;
+      }
+    } else {
+      if (playerAugments.some(a => a.id === 'aug_shield') && playerRoster.indexOf(target) === 0) {
+        dmg = Math.round(dmg * 0.8);
+      }
+      // 【只要開槓桿就好了】：後排受到的傷害增加 +15%
+      if (playerAugments.some(a => a.id === 'aug_leverage') && playerRoster.indexOf(target) > 0) {
+        dmg = Math.round(dmg * 1.15);
+      }
+    }
   }
 
-  if (attacker.isAlly) {
-    const shortAug = playerAugments.some(a => a.id === 'aug_short');
-    const icyBuff = playerRoster.some(u => u.id === 'icy_sis' && u.hp > 0 && !u.isWeakened);
-    const critChance = (shortAug ? 0.35 : 0) + (icyBuff ? 0.20 : 0);
-    if (critChance > 0 && Math.random() < critChance) {
-      dmg = Math.round(dmg * 1.6);
-      isCrit = true;
+  // 檢查新海克斯：【破產保護令】（我方首位受到致命傷害者鎖血 1 點、清負面、滿魔立即開大並維持存活）
+  if (target.isAlly && bankruptAvailable && target.hp - dmg <= 0) {
+    bankruptAvailable = false;
+    dmg = Math.max(0, target.hp - 1);
+    target.hp = 1;
+    target.isWeakened = false;
+    target.mp = target.maxMp;
+
+    if (attacker && attacker.stats) attacker.stats.dmgDealt += dmg;
+    if (target.stats) target.stats.dmgTaken += dmg;
+    queueVisualEffect(target, 'hit', `🛡️鎖血 1 HP!`);
+
+    battleComboLogs.push(`🛡️ ${target.name} 觸發【破產保護令】鎖血 1 HP 絕地反擊！`);
+    addLog(`🛡️ <span class="tag-event">破產保護令觸發</span> <strong>${target.icon} ${target.name}</strong> 鎖定 <strong>1 HP</strong> 不死、清除弱化並立即滿魔施放絕地大招！`);
+
+    const allies = playerRoster;
+    const opponents = enemyRoster;
+    const counterTarget = getTarget(opponents);
+    if (counterTarget) {
+      target.mp = 0;
+      castSkill(target, allies, opponents, counterTarget);
     }
-  } else {
-    if (playerAugments.some(a => a.id === 'aug_shield') && playerRoster.indexOf(target) === 0) {
-      dmg = Math.round(dmg * 0.8);
-    }
+    return dmg;
   }
 
   target.hp = Math.max(0, target.hp - dmg);
   target.mp = Math.min(target.maxMp, target.mp + 15);
 
-  // 記錄傷害與承傷數據
-  if (attacker.stats) attacker.stats.dmgDealt += dmg;
+  if (attacker && attacker.stats) attacker.stats.dmgDealt += dmg;
   if (target.stats) target.stats.dmgTaken += dmg;
 
-  triggerVisualEffect(target, 'hit', isCrit ? `💥CRIT -${dmg}` : `-${dmg}`);
+  queueVisualEffect(target, 'hit', isCrit ? `💥CRIT -${dmg}` : `-${dmg}`);
   updateDualHealthState(target);
   return dmg;
 }
@@ -942,7 +1036,7 @@ function recordHeal(healer, target, amount) {
   const actual = Math.min(target.maxHp - target.hp, amount);
   target.hp = Math.min(target.maxHp, target.hp + amount);
   if (healer && healer.stats && actual > 0) healer.stats.healed += actual;
-  if (actual > 0) triggerVisualEffect(target, 'heal', `+${actual}`);
+  if (actual > 0) queueVisualEffect(target, 'heal', `+${actual}`);
   updateDualHealthState(target);
 }
 
@@ -951,14 +1045,25 @@ function executeUnitTurn(actor) {
   const opponents = actor.isAlly ? enemyRoster : playerRoster;
   const syn = getActiveSynergies(allies);
   const target = getTarget(opponents);
-  if (!target) return;
+  if (!target || isPausedForEvent) return;
 
-  triggerVisualEffect(actor, 'lunge');
+  queueVisualEffect(actor, 'lunge');
   const extraMp = (actor.isAlly && playerAugments.some(a => a.id === 'aug_battery')) ? 15 : 0;
 
   if (actor.mp >= actor.maxMp) {
     actor.mp = 0;
     castSkill(actor, allies, opponents, target);
+
+    // 新海克斯：【機械鍵盤的回音】（施放大招時對敵方最低血量者造成 110 點真實傷害）
+    if (actor.isAlly && playerAugments.some(a => a.id === 'aug_key_echo')) {
+      const aliveOpps = opponents.filter(u => u.hp > 0 && !u.inRitual);
+      if (aliveOpps.length > 0) {
+        const lowestEnemy = [...aliveOpps].sort((a, b) => a.hp - b.hp)[0];
+        const echoDmg = dealDamage(actor, lowestEnemy, 110, true);
+        battleComboLogs.push(`⌨️ 觸發【機械鍵盤的回音】真實傷害打擊`);
+        addLog(`⌨️ <span class="tag-event">鍵盤回音</span> 對殘血 <strong>${lowestEnemy.name}</strong> 追加 <span class="tag-dmg">⚔️ -${echoDmg} 真實傷害</span>！`);
+      }
+    }
 
     // 【S.I.S】3人羈絆：追加技能【獨立自主】
     if ((syn['S.I.S'] || 0) >= 3 && actor.traits.includes('S.I.S')) {
@@ -967,36 +1072,36 @@ function executeUnitTurn(actor) {
         const sisDmg = dealDamage(actor, sisTarget, actor.atk * 0.75);
         sisTarget.sisMarks = (sisTarget.sisMarks || 0) + 1;
         battleComboLogs.push(`💅 ${actor.name} 觸發【獨立自主】印記追擊 (${sisTarget.sisMarks}層)`);
-        addLog(`💅 <strong>${actor.name}</strong> 追加發動<strong>【獨立自主】</strong>！對 ${sisTarget.name} 造成 <span class="log-dmg">${sisDmg}</span> 傷害並疊加印記 (目前 ${sisTarget.sisMarks} 層)！`, 'log-sis');
+        addLog(`💅 <strong>${actor.name}</strong> 追加<strong>【獨立自主】</strong> ➔ ${sisTarget.name} <span class="tag-dmg">⚔️ -${sisDmg}</span> <span class="tag-nerf">🔴 印記x${sisTarget.sisMarks} (易傷+${sisTarget.sisMarks * 5}%)</span>`);
       }
     }
 
     if (actor.isAlly && playerAugments.some(a => a.id === 'aug_idol')) {
       allies.filter(u => u.hp > 0).forEach(u => recordHeal(actor, u, 65));
+      addLog(`💖 <span class="tag-heal">💚 偶像應援 全隊+65 HP</span>`);
     }
 
     checkAndyRitual(allies, opponents);
     checkThreeGodsCombo(actor, allies, opponents);
   } else {
-    // 若是合體神卡【安迪與奧本海默】，普通攻擊也是全體 AOE 金融風暴！
     if (actor.id === 'andy_opp_fused') {
       const aliveOpps = opponents.filter(u => u.hp > 0 && !u.inRitual);
       aliveOpps.forEach(e => dealDamage(actor, e, actor.atk));
       actor.mp = Math.min(actor.maxMp, actor.mp + 30 + extraMp);
-      addLog(`☯️ <strong>${actor.name}</strong> 揮出【最強之兩人・全體金融風暴】普攻，橫掃敵方全體！`, 'log-skill');
+      addLog(`☯️ <strong>${actor.name}</strong> 普攻橫掃敵方全體 <span class="tag-dmg">⚔️ 全體金融風暴</span>！`);
     } else {
       const dmg = dealDamage(actor, target, actor.atk);
       actor.mp = Math.min(actor.maxMp, actor.mp + 30 + extraMp);
-      addLog(`${actor.isAlly ? '🟢' : '🔴'} <strong>${actor.name}</strong> 攻擊了 <strong>${target.name}</strong>，造成 <span class="log-dmg">${dmg}</span> 傷害。`);
+      addLog(`${actor.isAlly ? '🟢' : '🔴'} <strong>${actor.name}</strong> 普攻 <strong>${target.name}</strong> <span class="tag-dmg">⚔️ -${dmg}</span>`);
     }
   }
 
-  if (actor.id === 'loki' && actor.hp > 0) {
+  if (actor.id === 'loki' && actor.hp > 0 && !isPausedForEvent) {
     const mobiusTarget = getTarget(opponents);
     if (mobiusTarget) {
       const mDmg = dealDamage(actor, mobiusTarget, actor.atk * 0.55);
       battleComboLogs.push(`🕵️‍♂️ Loki 背後靈【Mobius】協同電擊`);
-      addLog(`🕵️‍♂️ <strong>Loki 的背後靈【Mobius】</strong> 追擊 <strong>${mobiusTarget.name}</strong>，造成 <span class="log-dmg">${mDmg}</span> 電擊傷害！`, 'log-synergy');
+      addLog(`🕵️‍♂️ <strong>背後靈【Mobius】</strong> 電擊 <strong>${mobiusTarget.name}</strong> <span class="tag-dmg">⚔️ -${mDmg}</span>`);
     }
   }
 }
@@ -1013,23 +1118,30 @@ function castSkill(actor, allies, opponents, mainTarget) {
         recordHeal(actor, a, Math.round(150 * skillBoost));
         a.atk = Math.round(a.atk * 1.25);
       });
-      addLog(`☯️ <strong>${actor.name}</strong> 施放<strong>【${actor.skillName}】</strong>！負油價隕石結合百倍槓桿核彈轟炸敵方全體，並為全隊回血 +150、攻擊力 +25%！`, 'log-skill');
+      addLog(`☯️ <strong>${actor.name}</strong> 施放<strong>【${actor.skillName}】</strong>！<span class="tag-dmg">⚔️ 全體200%轟炸</span> <span class="tag-heal">💚 全隊+150 HP</span> <span class="tag-buff">🟢 全隊攻+25%</span>`);
       break;
     }
     case 'mouse_sis': {
+      const otherAllies = aliveAllies.filter(a => a !== actor);
+      otherAllies.forEach(a => a.mp = Math.min(a.maxMp, a.mp + 40));
       aliveAllies.forEach(a => {
-        a.mp = Math.min(a.maxMp, a.mp + 40);
         recordHeal(actor, a, Math.round(90 * skillBoost));
         a.atk = Math.round(a.atk * 1.15);
       });
-      addLog(`🍵 <strong>${actor.name}</strong> 施放【${actor.skillName}】！全體友軍 <strong>+40 MP</strong>、回血 +90 並提升 15% 攻擊力！`, 'log-heal');
+      // 若場上只有鼠姐 1 人，喝完抹茶追加潑出熱抹茶造成 160% 傷害，解決單挑無限喝茶問題
+      if (otherAllies.length === 0 && mainTarget) {
+        const soloDmg = dealDamage(actor, mainTarget, actor.atk * 1.6 * skillBoost);
+        addLog(`🍵 <strong>${actor.name}</strong> 施放【${actor.skillName}】！<span class="tag-heal">💚 +90 HP</span> <span class="tag-buff">🟢 攻+15%</span> 並單挑潑出熱抹茶 <span class="tag-dmg">⚔️ -${soloDmg}</span>！`);
+      } else {
+        addLog(`🍵 <strong>${actor.name}</strong> 施放【${actor.skillName}】！<span class="tag-buff">🟢 隊友+40 MP</span> <span class="tag-heal">💚 全隊+90 HP</span> <span class="tag-buff">🟢 全隊攻+15%</span>`);
+      }
       break;
     }
     case 'st_sis': {
       const healMultiplier = (!actor.isWeakened ? 1.3 : 1) * skillBoost;
       const healAmt = Math.round(150 * healMultiplier);
       aliveAllies.forEach(a => recordHeal(actor, a, healAmt));
-      addLog(`🐶 <strong>${actor.name}</strong> 施放【${actor.skillName}】！為全隊回復 <span class="log-heal">${healAmt}</span> 生命值！`, 'log-heal');
+      addLog(`🐶 <strong>${actor.name}</strong> 施放【${actor.skillName}】！<span class="tag-heal">💚 全隊+${healAmt} HP</span>`);
       break;
     }
     case 'icy_sis': {
@@ -1038,28 +1150,32 @@ function castSkill(actor, allies, opponents, mainTarget) {
         recordHeal(actor, a, healAmt);
         a.atk = Math.round(a.atk * 1.20);
       });
-      addLog(`🐱 <strong>${actor.name}</strong> 發動【${actor.skillName}】！全體回血 <span class="log-heal">${healAmt}</span> 並提升 20% 攻擊力！`, 'log-heal');
+      addLog(`🐱 <strong>${actor.name}</strong> 施放【${actor.skillName}】！<span class="tag-heal">💚 全隊+${healAmt} HP</span> <span class="tag-buff">🟢 全隊攻+20%</span>`);
       break;
     }
     case 'shijie_sis': {
       const dmg = dealDamage(actor, mainTarget, actor.atk * 2.15 * skillBoost);
-      addLog(`🔫 <strong>${actor.name}</strong> 施放【${actor.skillName}】造成 <span class="log-dmg">${dmg}</span> 傷害！`, 'log-skill');
+      addLog(`🔫 <strong>${actor.name}</strong> 施放【${actor.skillName}】➔ ${mainTarget.name} <span class="tag-dmg">⚔️ -${dmg}</span>`);
       const dvAlly = aliveAllies.find(a => a.id === 'dv');
       if (dvAlly && mainTarget.hp > 0) {
         const dvDmg = dealDamage(dvAlly, mainTarget, dvAlly.atk * 1.2);
         actor.atk = Math.round(actor.atk * 1.2);
         dvAlly.atk = Math.round(dvAlly.atk * 1.2);
         battleComboLogs.push(`💢 師姐 sis + DV 觸發【老婆分靈體】狂暴合擊`);
-        addLog(`💢 <strong>【分靈體聯動】DV</strong> 把師姐 sis 認錯成老婆分靈體！狂暴追加 <span class="log-dmg">${dvDmg}</span> 傷害，兩人攻擊力 +20%！`, 'log-sis');
+        addLog(`💢 <span class="tag-event">分靈體聯動</span> <strong>DV</strong> 狂暴追擊 ${mainTarget.name} <span class="tag-dmg">⚔️ -${dvDmg}</span> <span class="tag-buff">🟢 兩人攻+20%</span>`);
       }
       break;
     }
     case 'dc_tesla': {
+      // v3.1 更新：Panther Mode 彈射！紅色 Model 3 全體 AOE 180% 撞飛 + 保留 30% 機率雙倍暴衝
       const isCrit = Math.random() < 0.3;
       const mult = isCrit ? 3.2 : 1.8;
-      const dmg = dealDamage(actor, mainTarget, actor.atk * mult * skillBoost);
+      let totalDmg = 0;
+      aliveOpps.forEach(e => {
+        totalDmg += dealDamage(actor, e, actor.atk * mult * skillBoost);
+      });
       aliveAllies.forEach(a => a.mp = Math.min(a.maxMp, a.mp + 25));
-      addLog(`🚗 <strong>${actor.name}</strong> 發動【${actor.skillName}】${isCrit ? '⚡FSD暴衝雙倍！' : ''}造成 <span class="log-dmg">${dmg}</span> 傷害，全隊充電 +25 MP！`, 'log-skill');
+      addLog(`🚗 <strong>${actor.name}</strong> 大喊「Panther Mode 彈射！」紅色 Model 3 飄移切入撞飛敵方全體！${isCrit ? '<span class="tag-crit">⚡FSD暴衝雙倍!</span>' : ''} <span class="tag-dmg">⚔️ 全體共-${totalDmg}</span> <span class="tag-buff">🟢 全隊+25 MP</span>`);
       break;
     }
     case 'stock_opp': {
@@ -1069,16 +1185,16 @@ function castSkill(actor, allies, opponents, mainTarget) {
           recordHeal(actor, a, healAmt);
           a.curSpd = (a.curSpd || a.spd) + 18;
         });
-        addLog(`👾 <strong>${actor.name}</strong> 發動<strong>【寶怪應援・SHEESH打Call】</strong>！全隊回復 <span class="log-heal">${healAmt}</span> 生命值，全體友軍 <strong>+18 攻速(SPD)</strong>！`, 'log-heal');
+        addLog(`👾 <strong>${actor.name}</strong> 發動【寶怪應援・SHEESH打Call】！<span class="tag-heal">💚 全隊+${healAmt} HP</span> <span class="tag-buff">🟢 全隊攻速+18</span>`);
       } else {
         if (Math.random() < 0.55) {
           aliveAllies.forEach(a => a.atk = Math.round(a.atk * 1.25));
           aliveOpps.forEach(e => dealDamage(actor, e, actor.atk * 1.15 * skillBoost));
-          addLog(`📈 <strong>${actor.name}</strong> 開出【牛市暴漲】！全隊攻擊力 +25% 並轟炸敵方全體！`, 'log-skill');
+          addLog(`📈 <strong>${actor.name}</strong> 開出【牛市暴漲】！<span class="tag-buff">🟢 全隊攻+25%</span> <span class="tag-dmg">⚔️ 全體115%轟炸</span>`);
         } else {
           const dmg = dealDamage(actor, mainTarget, actor.atk * 1.65 * skillBoost);
           recordHeal(actor, actor, dmg);
-          addLog(`📉 <strong>${actor.name}</strong> 發動【Rug Pull 割韭菜】！吸取 ${mainTarget.name} <span class="log-dmg">${dmg}</span> 生命！`, 'log-skill');
+          addLog(`📉 <strong>${actor.name}</strong> 發動【割韭菜】➔ ${mainTarget.name} <span class="tag-dmg">⚔️ -${dmg}</span> <span class="tag-heal">💚 吸血+${dmg}</span>`);
         }
       }
       break;
@@ -1089,42 +1205,41 @@ function castSkill(actor, allies, opponents, mainTarget) {
         a.atk = Math.round(a.atk * 1.15);
       });
       mainTarget.atk = Math.max(20, Math.round(mainTarget.atk * 0.85));
-      addLog(`🎤 <strong>${actor.name}</strong> 施放【${actor.skillName}】！全隊回血 +130、加攻 15%，並削弱 ${mainTarget.name}！`, 'log-heal');
+      addLog(`🎤 <strong>${actor.name}</strong> 施放【${actor.skillName}】！<span class="tag-heal">💚 全隊+130 HP</span> <span class="tag-buff">🟢 全隊攻+15%</span> <span class="tag-nerf">🔴 ${mainTarget.name} 攻-15%</span>`);
       break;
     }
     case 'loki': {
       const dmg = dealDamage(actor, mainTarget, actor.atk * 1.7 * skillBoost);
       aliveAllies.forEach(a => { if (a !== actor) a.mp = Math.min(a.maxMp, a.mp + 30); });
-      addLog(`🦊 <strong>${actor.name}</strong> 施放【時間線收割】造成 <span class="log-dmg">${dmg}</span> 傷害，全體隊友 +30 MP！`, 'log-skill');
+      addLog(`🦊 <strong>${actor.name}</strong> 施放【時間線收割】➔ ${mainTarget.name} <span class="tag-dmg">⚔️ -${dmg}</span> <span class="tag-buff">🟢 隊友+30 MP</span>`);
       break;
     }
     case 'andy': {
       aliveOpps.forEach(e => dealDamage(actor, e, actor.atk * 1.85 * skillBoost));
-      addLog(`🛢️ <strong>${actor.name}</strong> 引爆【負油價末日震波】轟炸敵方全體！`, 'log-skill');
+      addLog(`🛢️ <strong>${actor.name}</strong> 引爆【負油價末日震波】<span class="tag-dmg">⚔️ 全體185%轟炸</span>！`);
       break;
     }
     case 'aming': {
       aliveOpps.slice(0, 2).forEach(t => {
-        dealDamage(actor, t, actor.atk * 1.45 * skillBoost);
+        const dmg = dealDamage(actor, t, actor.atk * 1.45 * skillBoost);
         t.mp = Math.max(0, t.mp - 40);
       });
-      addLog(`💻 <strong>${actor.name}</strong> 執行【rm -rf /*】！對敵方植入 Bug 並清空 40 MP！`, 'log-skill');
+      addLog(`💻 <strong>${actor.name}</strong> 執行【rm -rf /*】！<span class="tag-dmg">⚔️ 雙目標145%傷害</span> <span class="tag-nerf">🔴 扣魔-40 MP</span>`);
       break;
     }
     case 'dashen': {
       const hasPartner = aliveAllies.some(a => a.id === 'loki' || a.id === 'hugo');
       const mult = hasPartner ? 1.7 : 1.25;
       aliveOpps.forEach(e => dealDamage(actor, e, actor.atk * mult * skillBoost));
-      addLog(`👑 <strong>${actor.name}</strong> 降下【全知全能・神諭裁決】轟炸全場！`, 'log-skill');
+      addLog(`👑 <strong>${actor.name}</strong> 降下【神諭裁決】<span class="tag-dmg">⚔️ 全體${Math.round(mult*100)}%轟炸</span>！`);
       break;
     }
     case 'hugo': {
       const weakest = [...aliveOpps].sort((a, b) => a.hp - b.hp)[0] || mainTarget;
       const dmg = dealDamage(actor, weakest, actor.atk * 2.1 * skillBoost);
-      if (aliveAllies.some(a => a.id === 'loki' || a.id === 'dashen')) {
-        aliveAllies.forEach(a => recordHeal(actor, a, 90));
-      }
-      addLog(`🌌 <strong>${actor.name}</strong> 施放【次元共鳴斬】斬擊 ${weakest.name} <span class="log-dmg">${dmg}</span> 傷害！`, 'log-skill');
+      const hasPartner = aliveAllies.some(a => a.id === 'loki' || a.id === 'dashen');
+      if (hasPartner) aliveAllies.forEach(a => recordHeal(actor, a, 90));
+      addLog(`🌌 <strong>${actor.name}</strong> 施放【次元共鳴斬】➔ ${weakest.name} <span class="tag-dmg">⚔️ -${dmg}</span> ${hasPartner ? '<span class="tag-heal">💚 全隊+90 HP</span>' : ''}`);
       break;
     }
     case 'dv': {
@@ -1134,27 +1249,27 @@ function castSkill(actor, allies, opponents, mainTarget) {
         const t = aliveOpps[Math.floor(Math.random() * aliveOpps.length)] || mainTarget;
         total += dealDamage(actor, t, actor.atk * 0.8 * missingHpRatio * skillBoost);
       }
-      addLog(`💢 <strong>${actor.name}</strong> 躁狂 3 連擊共造成 <span class="log-dmg">${total}</span> 點爆炸傷害！`, 'log-skill');
+      addLog(`💢 <strong>${actor.name}</strong> 躁狂 3 連擊 <span class="tag-dmg">⚔️ 共-${total}</span>！`);
       break;
     }
     case 'dvp': {
       recordHeal(actor, actor, Math.round(220 * skillBoost));
       const dmg = dealDamage(actor, mainTarget, actor.atk * 1.5 * skillBoost);
-      addLog(`🛡️ <strong>${actor.name}</strong> 開啟【雖遠必誅・共同富裕】！回復 220 生命並反震 ${mainTarget.name} <span class="log-dmg">${dmg}</span> 傷害！`, 'log-heal');
+      addLog(`🛡️ <strong>${actor.name}</strong> 施放【共同富裕】！<span class="tag-heal">💚 自癒+220 HP</span> <span class="tag-dmg">⚔️ 反震-${dmg}</span>`);
       break;
     }
     case 'ansir': {
       recordHeal(actor, actor, 180);
       actor.curSpd = (actor.curSpd || actor.spd) + 15;
       const dmg = dealDamage(actor, mainTarget, actor.atk * 1.5 * skillBoost);
-      addLog(`⚡ <strong>${actor.name}</strong> 回血 +180、永久加速，並痛擊 ${mainTarget.name} <span class="log-dmg">${dmg}</span>！`, 'log-skill');
+      addLog(`⚡ <strong>${actor.name}</strong> 施放【${actor.skillName}】！<span class="tag-heal">💚 +180 HP</span> <span class="tag-buff">🟢 速度+15</span> <span class="tag-dmg">⚔️ -${dmg}</span>`);
       break;
     }
     case 'lg': {
       const dmg = dealDamage(actor, mainTarget, actor.atk * 1.65 * skillBoost);
       const lowestAlly = [...aliveAllies].sort((a, b) => a.hp - b.hp)[0];
       if (lowestAlly) recordHeal(actor, lowestAlly, Math.round(180 * skillBoost));
-      addLog(`✝️ <strong>${actor.name}</strong> 制裁 ${mainTarget.name} <span class="log-dmg">${dmg}</span>，並治療 ${lowestAlly ? lowestAlly.name : ''} +180 HP！`, 'log-heal');
+      addLog(`✝️ <strong>${actor.name}</strong> 審判 ${mainTarget.name} <span class="tag-dmg">⚔️ -${dmg}</span> <span class="tag-heal">💚 治療${lowestAlly ? lowestAlly.name : ''}+180 HP</span>`);
       break;
     }
   }
@@ -1164,17 +1279,16 @@ function checkAndyRitual(allies, opponents) {
   const andy = allies.find(u => u.id === 'andy' && u.hp > 0 && u.inRitual);
   if (!andy) return;
   andy.ritualCount += 1;
-  addLog(`🕯️ <strong>${andy.name}</strong> 完成第 <strong>${andy.ritualCount} / 3</strong> 個柏克末日儀式！`, 'log-synergy');
+  addLog(`🕯️ <strong>${andy.name}</strong> 完成第 <strong>${andy.ritualCount} / 3</strong> 個柏克末日儀式！`);
 
   if (andy.ritualCount >= 3) {
     andy.inRitual = false;
     battleComboLogs.push(`☄️ Andy安迪 完成 3 儀式攜帶【負油價隕石】降臨`);
-    addLog(`☄️ <strong>【末日降臨】Andy安迪 完成 3 個儀式！攜帶「負油價隕石」毀滅性降臨戰場！</strong>`, 'log-skill');
+    addLog(`☄️ <span class="tag-event">末日降臨</span> <strong>Andy安迪</strong> 攜帶負油價隕石降臨戰場 <span class="tag-dmg">⚔️ 全體220%轟炸</span>！`);
     opponents.filter(u => u.hp > 0 && !u.inRitual).forEach(e => {
       dealDamage(andy, e, andy.atk * 2.2);
     });
 
-    // 檢查是否觸發【宿敵彩蛋】
     checkNemesisEasterEgg(andy);
   }
 }
@@ -1187,7 +1301,7 @@ function checkThreeGodsCombo(actor, allies, opponents) {
     if (target) {
       const comboDmg = dealDamage(actor, target, actor.atk * 0.9);
       battleComboLogs.push(`🌟 【3幻神】觸發三位一體追擊`);
-      addLog(`🌟 <strong>【3幻神全知全能共鳴】</strong> 觸發三位一體追擊，對 ${target.name} 追加 <span class="log-dmg">${comboDmg}</span> 神聖傷害！`, 'log-synergy');
+      addLog(`🌟 <span class="tag-event">3幻神共鳴</span> 三位一體追擊 ${target.name} <span class="tag-dmg">⚔️ -${comboDmg}</span>！`);
     }
   }
 }
@@ -1249,12 +1363,19 @@ function showBattleReportModal(isWin) {
 
 function closeReportAndProceed(isWin) {
   document.getElementById('reportModal').classList.add('hidden');
+  // 若我方因 3D6 死鬥敗北被永久刪除了唯一角色，提示重新開局
+  if (playerRoster.length === 0 && !isWin) {
+    alert('💀 你的唯一隊員已在華爾街死鬥中戰死除名！即將重新開局。');
+    initGame();
+    return;
+  }
+
   prepareUnitsForStage();
   updateUI();
 
   if (isWin) {
     if (currentStage >= maxStage) {
-      addLog(`🏆 <strong>恭喜通關全部 5 關！你的 DC BON 全明星小隊稱霸了整個 Discord！</strong>`, 'log-skill');
+      addLog(`🏆 <strong>恭喜通關全部 5 關！你的 DC BON 全明星小隊稱霸了整個 Discord！</strong>`);
     } else {
       currentStage++;
       updateUI();

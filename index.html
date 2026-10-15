@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DC BON 全明星自動戰棋 v3.0</title>
+<title>DC BON 全明星自動戰棋 v3.1</title>
 <style>
   :root {
     --bg-dark: #1e1f22;
@@ -50,26 +50,31 @@
   .unit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; flex: 1; }
   
   /* Unit Card & Combat Animations */
-  .unit-card { background: var(--bg-card); border-radius: 8px; padding: 10px; border: 2px solid #4e5058; position: relative; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+  .unit-card { background: var(--bg-card); border-radius: 8px; padding: 10px; border: 2px solid #4e5058; position: relative; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: space-between; overflow: visible; }
   .unit-card.frontline { border-left: 5px solid var(--discord-yellow); }
   .unit-card.dead { opacity: 0.32; filter: grayscale(100%); }
   .unit-card.ritual-mode { border-style: dashed; border-color: #a855f7; background: rgba(168, 85, 247, 0.1); }
   .unit-card.pet-buffed { box-shadow: inset 0 0 8px rgba(6, 182, 212, 0.4); border-color: var(--pet-cyan); }
   .unit-card.pet-weakened { border-color: var(--discord-red); }
+  .unit-card.overdrive-mode { box-shadow: 0 0 12px rgba(242, 63, 67, 0.55); border-color: #ff6b6b; }
 
-  @keyframes lungeAlly { 0% { transform: translateX(0); } 50% { transform: translateX(18px) scale(1.04); border-color: #fff; } 100% { transform: translateX(0); } }
-  @keyframes lungeEnemy { 0% { transform: translateX(0); } 50% { transform: translateX(-18px) scale(1.04); border-color: #fff; } 100% { transform: translateX(0); } }
-  @keyframes hitShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); background: rgba(242,63,67,0.3); } 75% { transform: translateX(6px); background: rgba(242,63,67,0.3); } }
-  .anim-lunge-ally { animation: lungeAlly 0.35s ease; z-index: 5; }
-  .anim-lunge-enemy { animation: lungeEnemy 0.35s ease; z-index: 5; }
-  .anim-hit { animation: hitShake 0.32s ease; }
+  @keyframes lungeAlly { 0% { transform: translateX(0); } 45% { transform: translateX(22px) scale(1.05); border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { transform: translateX(0); } }
+  @keyframes lungeEnemy { 0% { transform: translateX(0); } 45% { transform: translateX(-22px) scale(1.05); border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { transform: translateX(0); } }
+  @keyframes hitShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); background: rgba(242,63,67,0.45); border-color: var(--discord-red); } 60% { transform: translateX(8px); background: rgba(242,63,67,0.45); } 80% { transform: translateX(-4px); } }
+  .anim-lunge-ally { animation: lungeAlly 0.42s ease-out; z-index: 10; }
+  .anim-lunge-enemy { animation: lungeEnemy 0.42s ease-out; z-index: 10; }
+  .anim-hit { animation: hitShake 0.38s ease-in-out; z-index: 9; }
 
   /* Floating Combat Text */
-  @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(0.9); } 40% { transform: translateY(-14px) scale(1.1); } 100% { opacity: 0; transform: translateY(-30px) scale(0.95); } }
-  .float-text { position: absolute; top: 10px; right: 12px; font-weight: 900; font-size: 0.95rem; pointer-events: none; z-index: 20; text-shadow: 0 2px 4px #000; animation: floatUp 0.85s forwards; }
-  .float-dmg { color: #ff6b6b; }
-  .float-crit { color: var(--discord-yellow); font-size: 1.1rem; }
-  .float-heal { color: #4ade80; }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(0.85); }
+    30% { opacity: 1; transform: translateY(-16px) scale(1.15); }
+    100% { opacity: 0; transform: translateY(-38px) scale(0.95); }
+  }
+  .float-text { position: absolute; top: -6px; right: 10px; font-weight: 900; font-size: 1.05rem; pointer-events: none; z-index: 30; text-shadow: 0 2px 5px #000, 0 0 3px #000; animation: floatUp 0.85s ease-out forwards; padding: 2px 6px; border-radius: 4px; }
+  .float-dmg { color: #ff6b6b; background: rgba(0,0,0,0.65); border: 1px solid #ff6b6b; }
+  .float-crit { color: var(--discord-yellow); font-size: 1.2rem; background: rgba(0,0,0,0.8); border: 1.5px solid var(--discord-yellow); }
+  .float-heal { color: #4ade80; background: rgba(0,0,0,0.65); border: 1px solid #4ade80; }
 
   .unit-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
   .unit-name { font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 5px; }
@@ -97,7 +102,7 @@
   .move-btns button { flex: 1; background: #1e1f22; border: 1px solid #4e5058; color: var(--text-main); font-size: 0.7rem; padding: 3px; border-radius: 4px; cursor: pointer; }
   .move-btns button:hover { background: var(--discord-blue); }
 
-  /* Controls & Battle Log */
+  /* Controls & Color-Coded Battle Log */
   .bottom-section { width: 100%; max-width: 1120px; display: flex; gap: 12px; margin-top: 12px; }
   .controls-box { width: 260px; background: var(--bg-panel); padding: 15px; border-radius: 10px; border: 1px solid #3f4147; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
   .btn { padding: 11px; border: none; border-radius: 8px; font-weight: bold; font-size: 0.92rem; cursor: pointer; color: #fff; transition: opacity 0.2s; }
@@ -107,13 +112,16 @@
   .btn-secondary { background: var(--discord-blue); }
   .btn-danger { background: var(--discord-red); }
 
-  .log-box { flex: 1; background: #111214; border-radius: 10px; padding: 12px 15px; height: 200px; overflow-y: auto; border: 1px solid #3f4147; font-size: 0.84rem; line-height: 1.5; }
-  .log-entry { margin-bottom: 4px; border-bottom: 1px solid #1e1f22; padding-bottom: 2px; }
-  .log-skill { color: var(--discord-yellow); font-weight: bold; }
-  .log-synergy { color: #c084fc; font-weight: bold; }
-  .log-sis { color: #f472b6; font-weight: bold; }
-  .log-dmg { color: #f87171; }
-  .log-heal { color: #4ade80; }
+  .log-box { flex: 1; background: #111214; border-radius: 10px; padding: 12px 15px; height: 210px; overflow-y: auto; border: 1px solid #3f4147; font-size: 0.84rem; line-height: 1.65; }
+  .log-entry { margin-bottom: 5px; border-bottom: 1px solid #1e1f22; padding-bottom: 3px; }
+  
+  /* 戰鬥視窗彩色膠囊標籤 (BUFF=綠, NERF=紅, DMG=橘紅, HEAL=翠綠) */
+  .tag-buff { background: rgba(34, 197, 94, 0.22); border: 1px solid #4ade80; color: #4ade80; padding: 1px 6px; border-radius: 4px; font-weight: bold; font-size: 0.78rem; display: inline-block; margin: 0 2px; }
+  .tag-nerf { background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fca5a5; padding: 1px 6px; border-radius: 4px; font-weight: bold; font-size: 0.78rem; display: inline-block; margin: 0 2px; }
+  .tag-dmg { background: rgba(249, 115, 22, 0.22); border: 1px solid #fb923c; color: #fdba74; padding: 1px 6px; border-radius: 4px; font-weight: bold; font-size: 0.78rem; display: inline-block; margin: 0 2px; }
+  .tag-crit { background: rgba(240, 178, 50, 0.28); border: 1px solid var(--discord-yellow); color: var(--discord-yellow); padding: 1px 6px; border-radius: 4px; font-weight: 900; font-size: 0.82rem; display: inline-block; margin: 0 2px; }
+  .tag-heal { background: rgba(16, 185, 129, 0.22); border: 1px solid #34d399; color: #6ee7b7; padding: 1px 6px; border-radius: 4px; font-weight: bold; font-size: 0.78rem; display: inline-block; margin: 0 2px; }
+  .tag-event { background: rgba(168, 85, 247, 0.25); border: 1px solid #c084fc; color: #e9d5ff; padding: 1px 6px; border-radius: 4px; font-weight: bold; font-size: 0.78rem; display: inline-block; margin: 0 2px; }
 
   /* Modals */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.84); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 15px; }
@@ -137,10 +145,9 @@
   .choice-stats { font-size: 0.76rem; color: var(--text-muted); border-top: 1px solid #4e5058; padding-top: 8px; }
   .upgrade-tag { background: var(--discord-yellow); color: #000; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
-  /* Peek Board Button */
   .peek-btn { position: fixed; bottom: 20px; right: 20px; z-index: 150; background: var(--discord-yellow); color: #000; border: none; padding: 10px 16px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 
-  /* Dice Duel Modal & Animation */
+  /* Dice Duel Modal */
   .duel-arena { display: flex; justify-content: space-around; align-items: center; background: #111214; padding: 18px; border-radius: 10px; margin: 15px 0; border: 1px solid #4e5058; flex-wrap: wrap; gap: 15px; }
   .duel-fighter { flex: 1; min-width: 200px; text-align: center; }
   .duel-fighter h3 { font-size: 1.15rem; margin-bottom: 8px; }
@@ -171,7 +178,7 @@
 
 <header>
   <div class="title-area">
-    <h1>♟️ DC BON 全明星自動戰棋 <span style="font-size:0.75rem; color:var(--text-muted);">v3.0 宿敵決鬥與圖鑑版</span></h1>
+    <h1>♟️ DC BON 全明星自動戰棋 <span style="font-size:0.75rem; color:var(--text-muted);">v3.1 特效修復與新海克斯版</span></h1>
   </div>
   <div class="header-right">
     <button class="codex-btn" onclick="openCodex()">📘 遊戲圖鑑</button>
@@ -216,17 +223,16 @@
     <button class="btn btn-danger" onclick="resetGame()">🔄 重新開局</button>
   </div>
   <div class="log-box" id="battleLog">
-    <div class="log-entry">歡迎來到 **DC BON 全明星自動戰棋 v3.0**！點擊右上角「📘 遊戲圖鑑」可隨時查閱所有角色、羈絆與隱藏彩蛋提示。</div>
+    <div class="log-entry">歡迎來到 **DC BON 全明星自動戰棋 v3.1**！戰鬥視窗已升級為彩色標籤（<span class="tag-buff">🟢 BUFF</span> <span class="tag-nerf">🔴 NERF</span> <span class="tag-dmg">⚔️ 傷害</span> <span class="tag-heal">💚 回血</span>）。</div>
   </div>
 </div>
 
-<!-- 1. 選卡與海克斯增幅 Modal (含現有陣容與增幅預覽) -->
+<!-- 1. 選卡與海克斯增幅 Modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-content" id="draftModalContent">
     <h2 class="modal-title" id="modalTitle">選擇你的初始英雄</h2>
     <p class="modal-sub" id="modalSub">從以下 3 位 Discord 朋友中招募 1 位加入隊伍</p>
     
-    <!-- 即時預覽目前隊伍與增幅 -->
     <div class="draft-overview" id="draftOverview">
       <div class="draft-overview-row">
         <span class="draft-overview-label">🟢 當前隊伍：</span>
@@ -261,13 +267,13 @@
 <div class="modal-overlay hidden" id="codexModal">
   <div class="modal-content">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h2 class="modal-title">📘 《DC BON 全明星戰棋》v3.0 官方圖鑑</h2>
+      <h2 class="modal-title">📘 《DC BON 全明星戰棋》v3.1 官方圖鑑</h2>
       <button class="btn btn-danger" style="padding:6px 14px;" onclick="closeCodex()">✖ 關閉</button>
     </div>
     <div class="codex-tabs">
       <button class="codex-tab active" id="tabHeroes" onclick="renderCodexTab('heroes')">🦸‍♂️ 全英雄圖鑑 (17位)</button>
       <button class="codex-tab" id="tabTraits" onclick="renderCodexTab('traits')">🔗 羈絆說明 (8大陣營)</button>
-      <button class="codex-tab" id="tabAugments" onclick="renderCodexTab('augments')">⚡ 海克斯增幅 (9款)</button>
+      <button class="codex-tab" id="tabAugments" onclick="renderCodexTab('augments')">⚡ 海克斯增幅 (13款)</button>
     </div>
     <div id="codexBody" style="text-align:left; max-height:68vh; overflow-y:auto;"></div>
   </div>
@@ -275,7 +281,6 @@
 
 <div id="customTooltip"></div>
 
-<!-- 載入外部資料與核心引擎 -->
 <script src="data.js"></script>
 <script src="engine.js"></script>
 </body>
