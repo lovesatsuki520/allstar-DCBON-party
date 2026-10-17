@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>《DC BON 全明星自動戰棋》【硬核深淵：命數與極意】</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
   :root {
     --p5-black: #0a0a0c;
@@ -42,16 +40,17 @@
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    padding: 14px;
+    padding: 12px;
     overflow-x: hidden;
   }
 
-  .p5-font, .stage-badge, .float-text, .p5-cutin-name, .score-board {
+  /* P5 Anton Display Typography */
+  .p5-font, .stage-badge, .float-text, .p5-cutin-name, .score-board, .fe-stat-val {
     font-family: 'Anton', 'Noto Sans TC', sans-serif;
     letter-spacing: 1px;
   }
 
-  /* ================= Persona 5 放射狀集中線與斜切特寫佇列橫幅 (Cut-in Queue) ================= */
+  /* ================= Persona 5 放射狀集中線與斜切特寫橫幅 (Cut-in Queue Banner) ================= */
   .p5-speed-lines {
     position: fixed;
     inset: 0;
@@ -78,13 +77,13 @@
 
   .p5-cutin-overlay {
     position: fixed;
-    top: 26%;
+    top: 30%;
     left: -5%;
     width: 110%;
     z-index: 260;
     pointer-events: none;
     transform: rotate(-5deg);
-    animation: cutInSlide 1.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: cutInSlide 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   @keyframes cutInSlide {
     0% { transform: translateX(-100%) rotate(-5deg) scaleY(0.2); opacity: 0; }
@@ -141,13 +140,23 @@
     transform: skewX(-10deg);
     border-left: 4px solid var(--p5-white);
   }
+  .cutin-queue-badge {
+    margin-left: auto;
+    background: #000;
+    border: 2px solid var(--p5-yellow);
+    color: var(--p5-yellow);
+    font-size: 0.8rem;
+    font-weight: 900;
+    padding: 4px 10px;
+    transform: skewX(-10deg);
+  }
 
-  /* ================= Header & Top Bar ================= */
+  /* ================= Header & Top Bar (P5 剪紙斜角風格) ================= */
   header {
     width: 100%;
-    max-width: 1140px;
+    max-width: 1180px;
     background: var(--p5-panel);
-    padding: 14px 22px;
+    padding: 12px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -157,9 +166,10 @@
     clip-path: polygon(0 0, 99.2% 4%, 100% 100%, 0.6% 96%);
     flex-wrap: wrap;
     gap: 10px;
+    z-index: 40;
   }
   .title-area h1 {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     font-weight: 900;
     color: var(--p5-white);
     display: flex;
@@ -168,7 +178,7 @@
     text-shadow: 3px 3px 0 #000;
     flex-wrap: wrap;
   }
-  .abyss-tag {
+  .subtitle-tag {
     background: var(--p5-red);
     color: var(--p5-white);
     font-size: 0.78rem;
@@ -183,34 +193,35 @@
     gap: 10px;
     flex-wrap: wrap;
   }
+  .reroll-badge {
+    background: #09090b;
+    color: var(--p5-cyan);
+    border: 2px solid var(--p5-cyan);
+    padding: 5px 12px;
+    font-weight: 900;
+    font-size: 0.88rem;
+    transform: skewX(-10deg);
+    box-shadow: 4px 4px 0 #000;
+    cursor: help;
+  }
   .lives-badge {
     background: #000;
     color: var(--p5-white);
     border: 2px solid var(--p5-red);
     padding: 5px 12px;
     font-weight: 900;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     transform: skewX(-10deg);
     box-shadow: 4px 4px 0 var(--p5-red);
     cursor: help;
   }
-  .reroll-badge {
-    background: #000;
-    color: var(--p5-cyan);
-    border: 2px solid var(--p5-cyan);
-    padding: 5px 12px;
-    font-weight: 900;
-    font-size: 0.9rem;
-    transform: skewX(-10deg);
-    box-shadow: 4px 4px 0 #000;
-  }
   .stage-badge {
     background: var(--p5-red);
     color: var(--p5-white);
-    padding: 5px 16px;
+    padding: 5px 14px;
     border: 2px solid var(--p5-white);
     font-weight: 900;
-    font-size: 1rem;
+    font-size: 0.98rem;
     transform: skewX(-10deg);
     box-shadow: 4px 4px 0 #000;
   }
@@ -218,10 +229,10 @@
     background: var(--p5-yellow);
     color: #000;
     border: 2px solid #000;
-    padding: 6px 14px;
+    padding: 6px 12px;
     cursor: pointer;
     font-weight: 900;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     transform: skewX(-10deg);
     box-shadow: 4px 4px 0 #000;
     transition: transform 0.15s, background 0.15s;
@@ -230,153 +241,348 @@
     background: var(--p5-white);
     transform: skewX(-10deg) translateY(-2px);
   }
-
-  /* ================= 死鬥疲勞 (Sudden Death) 頂部警示橫幅 ================= */
-  .sudden-death-banner {
-    width: 100%;
-    max-width: 1140px;
-    background: linear-gradient(90deg, #450a0a, #e60012, #450a0a);
-    border: 2px solid var(--p5-yellow);
-    color: #fff;
-    padding: 8px 18px;
-    margin-bottom: 12px;
+  .sound-btn {
+    background: #1d1d24;
+    color: var(--p5-white);
+    border: 2px solid #52525b;
+    padding: 6px 11px;
+    cursor: pointer;
     font-weight: 900;
-    font-size: 0.92rem;
-    text-align: center;
-    box-shadow: 6px 6px 0 #000;
-    animation: pulseSuddenDeath 0.8s infinite alternate;
+    font-size: 0.82rem;
+    transform: skewX(-10deg);
+    box-shadow: 3px 3px 0 #000;
   }
-  @keyframes pulseSuddenDeath {
-    0% { filter: brightness(1); transform: scale(1); }
-    100% { filter: brightness(1.22); transform: scale(1.01); }
-  }
+  .sound-btn:hover { border-color: var(--p5-yellow); }
 
-  /* ================= Status Bar (TFT 式羈絆頭像點亮) ================= */
+  /* ================= Status Bar (TFT 式羈絆頭像點亮 + 海克斯增幅) ================= */
   .status-bar {
     width: 100%;
-    max-width: 1140px;
+    max-width: 1180px;
     display: flex;
-    gap: 14px;
+    gap: 12px;
     margin-bottom: 12px;
     flex-wrap: wrap;
   }
   .status-box {
     flex: 1;
-    min-width: 300px;
+    min-width: 310px;
     background: var(--p5-panel);
-    padding: 12px 16px;
+    padding: 11px 15px;
     border: 2px solid #3f3f46;
     border-left: 6px solid var(--p5-red);
     box-shadow: 6px 6px 0 #000;
+    clip-path: polygon(0 0, 100% 2%, 99.3% 100%, 0.4% 98%);
   }
   .status-box h3 {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     color: var(--p5-yellow);
     margin-bottom: 8px;
+    text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 900;
-  }
-  .badge-list { display: flex; flex-wrap: wrap; gap: 8px; }
-  .tft-trait-chip {
-    background: var(--p5-card);
-    padding: 5px 10px;
-    font-size: 0.78rem;
-    border: 2px solid #52525b;
-    cursor: pointer;
-    transform: skewX(-6deg);
-    box-shadow: 3px 3px 0 #000;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: transform 0.15s, border-color 0.15s;
-  }
-  .tft-trait-chip:hover { transform: skewX(-6deg) translateY(-2px); border-color: var(--p5-white); }
-  .tft-trait-chip.active-gold {
-    background: #09090b;
-    border-color: var(--p5-yellow);
-    color: var(--p5-yellow);
-    font-weight: 900;
-    box-shadow: 3px 3px 0 var(--p5-red);
-  }
-  .tft-trait-avatars {
-    display: inline-flex;
-    gap: 3px;
-    margin-left: 4px;
-  }
-  .tft-avatar-dot {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #18181b;
-    border: 1px solid #52525b;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.72rem;
-    opacity: 0.35;
-    filter: grayscale(100%);
-  }
-  .tft-avatar-dot.lit {
-    opacity: 1;
-    filter: none;
-    background: #000;
-    border: 2px solid var(--p5-yellow);
-    box-shadow: 0 0 6px rgba(255, 230, 0, 0.7);
-  }
-  .badge.augment {
-    background: rgba(230, 0, 18, 0.2);
-    border: 2px solid var(--p5-red);
-    color: #fecdd3;
-    padding: 5px 10px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-    transform: skewX(-6deg);
-  }
-
-  /* =================《聖火降魔錄》式日系交戰對峙橫幅 (FE Clash Banner) ================= */
-  .fe-clash-bar {
-    width: 100%;
-    background: linear-gradient(90deg, rgba(0, 230, 118, 0.18) 0%, #09090b 35%, #09090b 65%, rgba(230, 0, 18, 0.22) 100%);
-    border: 2px solid #3f3f46;
-    border-top: 3px solid var(--p5-yellow);
-    padding: 8px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    min-height: 54px;
-    box-shadow: inset 0 0 12px #000;
+  }
+  .badge-list { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* TFT Style Synergy Pill with Hero Avatars */
+  .tft-trait-card {
+    background: var(--p5-card);
+    border: 2px solid #52525b;
+    padding: 5px 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: help;
+    transform: skewX(-6deg);
+    box-shadow: 3px 3px 0 #000;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .tft-trait-card:hover {
+    transform: skewX(-6deg) translateY(-2px);
+    border-color: var(--p5-white);
+  }
+  .tft-trait-card.active-gold {
+    background: #08080a;
+    border-color: var(--p5-yellow);
+    box-shadow: 3px 3px 0 var(--p5-red);
+  }
+  .tft-trait-card.active-sis {
+    background: rgba(255, 42, 133, 0.22);
+    border-color: var(--sis-pink);
+    box-shadow: 3px 3px 0 #000;
+  }
+  .tft-trait-count {
+    background: #27272a;
+    color: #fff;
+    font-weight: 900;
+    font-size: 0.74rem;
+    padding: 2px 6px;
+    border: 1px solid #52525b;
+  }
+  .tft-trait-card.active-gold .tft-trait-count {
+    background: var(--p5-yellow);
+    color: #000;
+    border-color: #000;
+  }
+  .tft-trait-card.active-sis .tft-trait-count {
+    background: var(--sis-pink);
+    color: #fff;
+    border-color: #fff;
+  }
+  .tft-trait-name {
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: var(--text-main);
+  }
+  .tft-trait-card.active-gold .tft-trait-name { color: var(--p5-yellow); }
+  .tft-avatar-strip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 2px;
+  }
+  .tft-hero-chip {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    opacity: 0.35;
+    filter: grayscale(100%);
+    position: relative;
+  }
+  .tft-hero-chip.lit {
+    opacity: 1;
+    filter: none;
+    border: 2px solid var(--p5-green);
+    background: #14281d;
+    box-shadow: 0 0 6px rgba(0, 230, 118, 0.6);
+  }
+  .tft-hero-chip.lit-star3 {
+    border-color: var(--p5-yellow);
+    background: #2b1f06;
+    box-shadow: 0 0 8px rgba(255, 230, 0, 0.85);
+  }
+
+  .badge {
+    background: var(--p5-card);
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    border: 2px solid #52525b;
+    cursor: help;
+    transform: skewX(-8deg);
+    box-shadow: 3px 3px 0 #000;
+  }
+  .badge.augment {
+    background: rgba(230, 0, 18, 0.2);
+    border-color: var(--p5-red);
+    color: #fecdd3;
+    font-weight: 700;
+  }
+
+  /* ================= 死鬥疲勞 (Sudden Death) 頂部醒目橫幅 ================= */
+  .sudden-death-banner {
+    width: 100%;
+    max-width: 1180px;
+    background: linear-gradient(90deg, #450a0a 0%, #dc2626 50%, #450a0a 100%);
+    border: 3px solid var(--p5-yellow);
+    color: #fff;
+    padding: 8px 18px;
+    margin-bottom: 12px;
+    font-weight: 900;
+    font-size: 0.92rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 6px 6px 0 #000;
+    animation: pulseSuddenDeath 0.8s infinite alternate;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  @keyframes pulseSuddenDeath {
+    0% { border-color: var(--p5-yellow); box-shadow: 0 0 10px rgba(230,0,18,0.6); }
+    100% { border-color: var(--p5-white); box-shadow: 0 0 22px rgba(255,230,0,0.85); }
+  }
+
+  /* ================= 《聖火降魔錄》風格左右對峙交戰橫幅 (Fire Emblem Clash Forecast) ================= */
+  .fe-clash-banner {
+    width: 100%;
+    background: linear-gradient(90deg, rgba(6, 78, 59, 0.92) 0%, #09090b 44%, #09090b 56%, rgba(127, 29, 29, 0.92) 100%);
+    border: 2px solid var(--p5-yellow);
+    box-shadow: 5px 5px 0 #000;
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    min-height: 68px;
+    position: relative;
+    overflow: hidden;
   }
   .fe-side {
+    flex: 1;
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 0.85rem;
-    font-weight: 900;
+    min-width: 220px;
   }
-  .fe-center-action {
+  .fe-side.enemy {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .fe-portrait {
+    width: 48px;
+    height: 48px;
     background: #000;
-    border: 1px solid var(--p5-yellow);
-    color: var(--p5-yellow);
-    padding: 3px 14px;
-    font-size: 0.82rem;
+    border: 2px solid var(--p5-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    transform: skewX(-8deg);
+    box-shadow: 3px 3px 0 var(--p5-yellow);
+    flex-shrink: 0;
+  }
+  .fe-side.enemy .fe-portrait {
+    box-shadow: -3px 3px 0 var(--p5-red);
+  }
+  .fe-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+  .fe-name-row {
     font-weight: 900;
-    transform: skewX(-10deg);
+    font-size: 0.9rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .fe-side.enemy .fe-name-row {
+    justify-content: flex-end;
+  }
+  .fe-weapon-tag {
+    font-size: 0.74rem;
+    color: var(--p5-yellow);
+    background: rgba(0,0,0,0.65);
+    padding: 1px 7px;
+    border: 1px solid #52525b;
+    display: inline-block;
+  }
+  .fe-stats-row {
+    display: flex;
+    gap: 10px;
+    font-size: 0.74rem;
+    color: #e4e4e7;
+    margin-top: 2px;
+  }
+  .fe-side.enemy .fe-stats-row {
+    justify-content: flex-end;
+  }
+  .fe-stat-item {
+    background: rgba(0,0,0,0.6);
+    padding: 1px 6px;
+    border-left: 2px solid var(--p5-cyan);
+  }
+  .fe-center-vs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    min-width: 135px;
     text-align: center;
   }
+  .fe-vs-badge {
+    font-family: 'Anton', sans-serif;
+    font-size: 1.15rem;
+    color: var(--p5-yellow);
+    text-shadow: 2px 2px 0 var(--p5-red);
+    letter-spacing: 1.5px;
+  }
+  .fe-range-pill {
+    font-size: 0.7rem;
+    background: #18181b;
+    border: 1px solid #52525b;
+    color: var(--p5-cyan);
+    padding: 1px 8px;
+    margin-top: 2px;
+    font-weight: 700;
+  }
+  .fe-assist-pill {
+    margin-top: 3px;
+    background: linear-gradient(90deg, #7e22ce, #db2777);
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 1px 8px;
+    transform: skewX(-8deg);
+    animation: hitShake 0.4s ease;
+  }
 
-  /* ================= Main Arena & Bench ================= */
+  /* ================= 空間戰術雷達棋盤 (Spatial Tactical Radar Bar) ================= */
+  .spatial-radar-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    padding: 6px 12px;
+    font-size: 0.76rem;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .radar-cells {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .radar-node {
+    padding: 2px 8px;
+    background: #18181b;
+    border: 1px solid #52525b;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transform: skewX(-6deg);
+  }
+  .radar-node.ally-node { border-left: 3px solid var(--p5-green); }
+  .radar-node.enemy-node { border-right: 3px solid var(--p5-red); }
+  .radar-node.active-attacker {
+    background: var(--p5-yellow);
+    color: #000;
+    border-color: #fff;
+    font-weight: 900;
+  }
+  .radar-node.active-target {
+    background: var(--p5-red);
+    color: #fff;
+    border-color: var(--p5-yellow);
+    font-weight: 900;
+  }
+
+  /* ================= Main Arena ================= */
   .arena {
     width: 100%;
-    max-width: 1140px;
+    max-width: 1180px;
     background: var(--p5-panel);
-    padding: 18px;
+    padding: 16px;
     border: 3px solid var(--p5-white);
     box-shadow: 8px 8px 0 #000;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     position: relative;
   }
   .battlefield {
@@ -384,7 +590,7 @@
     justify-content: space-between;
     align-items: stretch;
     gap: 20px;
-    min-height: 320px;
+    min-height: 310px;
     flex-wrap: wrap;
   }
   .team-column {
@@ -392,7 +598,7 @@
     min-width: 310px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
   .team-header {
     font-size: 0.92rem;
@@ -411,47 +617,84 @@
   .unit-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: 12px;
     flex: 1;
   }
 
-  /* 冷板凳 (2 格備戰區) */
-  .bench-section {
-    background: #0c0c10;
+  /* ================= 冷板凳 (2 格備戰區 Bench Section) ================= */
+  .bench-container {
+    margin-top: 6px;
+    background: #0b0b0e;
     border: 2px dashed #52525b;
     border-left: 6px solid var(--p5-cyan);
-    padding: 12px 16px;
-    margin-top: 4px;
+    padding: 10px 12px;
   }
   .bench-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     font-weight: 900;
     color: var(--p5-cyan);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .bench-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: 10px;
   }
-  .bench-empty-slot {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed #3f3f46;
-    min-height: 92px;
+  .bench-slot {
+    background: #14141a;
+    border: 1px solid #3f3f46;
+    padding: 8px 10px;
+    min-height: 74px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 0.8rem;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  .bench-slot.occupied {
+    border-color: var(--p5-cyan);
+    background: #181822;
+    box-shadow: 4px 4px 0 #000;
+  }
+  .bench-empty-text {
+    color: #52525b;
+    font-size: 0.76rem;
+    font-weight: 700;
+    margin: auto;
+    text-align: center;
+  }
+  .swap-btn-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .swap-btn-row button {
+    flex: 1;
+    background: #09090b;
+    border: 1px solid var(--p5-cyan);
+    color: var(--p5-cyan);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 5px;
+    cursor: pointer;
+    transform: skewX(-6deg);
+  }
+  .swap-btn-row button:hover:not(:disabled) {
+    background: var(--p5-cyan);
+    color: #000;
+  }
+  .swap-btn-row button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
   }
 
-  /* ================= Unit Card (修復右上角遮擋 + 技能標籤極簡化) ================= */
+  /* ================= Unit Card (P5 剪紙幾何切割 + 硬邊落影) ================= */
   .unit-card {
     background: var(--p5-card);
-    padding: 11px;
+    padding: 10px;
     border: 2px solid #52525b;
     position: relative;
     transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
@@ -462,10 +705,32 @@
     box-shadow: 6px 6px 0px #000;
     clip-path: polygon(0 0, 98.5% 2%, 100% 98%, 1.2% 100%);
   }
-  .unit-card.frontline { border-left: 6px solid var(--p5-yellow); }
-  .unit-card.awakened-star3 { border-color: var(--p5-yellow); box-shadow: 6px 6px 0px var(--p5-red); }
-  .unit-card.dead { opacity: 0.30; filter: grayscale(100%) contrast(140%); }
-  .unit-card.ritual-mode { border-style: dashed; border-color: #c084fc; background: rgba(168, 85, 247, 0.12); }
+  .unit-card.frontline {
+    border-left: 6px solid var(--p5-yellow);
+  }
+  .unit-card.awakened-star3 {
+    border-color: var(--p5-yellow);
+    box-shadow: 6px 6px 0px var(--p5-red);
+  }
+  .unit-card.dead {
+    opacity: 0.30;
+    filter: grayscale(100%) contrast(140%);
+  }
+  .unit-card.ritual-mode {
+    border-style: dashed;
+    border-color: #c084fc;
+    background: rgba(168, 85, 247, 0.12);
+  }
+  .unit-card.pet-buffed {
+    border-color: var(--pet-cyan);
+  }
+  .unit-card.pet-weakened {
+    border-color: var(--p5-red);
+  }
+  .unit-card.overdrive-mode {
+    box-shadow: 6px 6px 0px var(--p5-red), 0 0 14px rgba(230, 0, 18, 0.65);
+    border-color: var(--p5-red);
+  }
   .unit-card.demonized-mode {
     background: linear-gradient(135deg, #1a0508 0%, #2d060b 100%);
     border: 2px solid var(--p5-red);
@@ -486,58 +751,85 @@
     transform: skewX(-10deg);
     font-weight: 900;
   }
+  .range-badge {
+    background: #18181b;
+    color: var(--p5-cyan);
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border: 1px solid #3f3f46;
+    font-weight: 700;
+  }
 
   @keyframes lungeAlly {
     0% { transform: translateX(0); }
-    45% { transform: translateX(22px) scale(1.04); border-color: var(--p5-white); box-shadow: 10px 10px 0 var(--p5-red); }
+    45% { transform: translateX(24px) scale(1.05) rotate(-1.5deg); border-color: var(--p5-white); box-shadow: 10px 10px 0 var(--p5-red); }
     100% { transform: translateX(0); }
   }
   @keyframes lungeEnemy {
     0% { transform: translateX(0); }
-    45% { transform: translateX(-22px) scale(1.04); border-color: var(--p5-white); box-shadow: -10px 10px 0 var(--p5-red); }
+    45% { transform: translateX(-24px) scale(1.05) rotate(1.5deg); border-color: var(--p5-white); box-shadow: -10px 10px 0 var(--p5-red); }
     100% { transform: translateX(0); }
   }
   @keyframes hitShake {
     0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); background: rgba(230, 0, 18, 0.5); border-color: var(--p5-white); }
-    60% { transform: translateX(8px); background: rgba(230, 0, 18, 0.5); }
+    20% { transform: translateX(-9px) rotate(-2deg); background: rgba(230, 0, 18, 0.55); border-color: var(--p5-white); }
+    60% { transform: translateX(9px) rotate(2deg); background: rgba(230, 0, 18, 0.55); }
     80% { transform: translateX(-4px); }
   }
   .anim-lunge-ally { animation: lungeAlly 0.42s ease-out; z-index: 20; }
   .anim-lunge-enemy { animation: lungeEnemy 0.42s ease-out; z-index: 20; }
   .anim-hit { animation: hitShake 0.38s ease-in-out; z-index: 19; }
 
-  /* 傷害跳字改為置中偏左彈出，不再遮擋右上角數據與位置標籤 */
+  /* ================= P5 漫畫風傷害跳字 (置中偏下彈出，絕不遮擋右上角數據) ================= */
   @keyframes floatUpP5 {
-    0% { opacity: 1; transform: translate(-50%, 0) scale(0.8) rotate(-5deg); }
-    30% { opacity: 1; transform: translate(-50%, -18px) scale(1.18) rotate(3deg); }
-    100% { opacity: 0; transform: translate(-50%, -40px) scale(0.95) rotate(-2deg); }
+    0% { opacity: 1; transform: translate(-50%, 0) scale(0.75) rotate(-6deg); }
+    28% { opacity: 1; transform: translate(-50%, -14px) scale(1.18) rotate(3deg); }
+    100% { opacity: 0; transform: translate(-50%, -34px) scale(0.95) rotate(-2deg); }
   }
   .float-text {
     position: absolute;
-    top: 22px;
-    left: 45%;
+    top: 42%;
+    left: 50%;
     font-weight: 900;
     font-size: 1.08rem;
     pointer-events: none;
     z-index: 50;
-    animation: floatUpP5 0.9s ease-out forwards;
+    animation: floatUpP5 0.88s ease-out forwards;
     padding: 2px 8px;
     border: 2px solid #000;
     box-shadow: 4px 4px 0 #000;
     white-space: nowrap;
   }
-  .float-dmg { color: var(--p5-white); background: var(--p5-red); border-color: var(--p5-white); }
-  .float-crit { color: #000; font-size: 1.22rem; background: var(--p5-yellow); border: 2px solid var(--p5-white); }
-  .float-heal { color: #000; background: var(--p5-green); border-color: var(--p5-white); }
-  .float-shield { color: #000; background: var(--p5-cyan); border-color: var(--p5-white); }
+  .float-dmg {
+    color: var(--p5-white);
+    background: var(--p5-red);
+    border-color: var(--p5-white);
+  }
+  .float-crit {
+    color: #000;
+    font-size: 1.24rem;
+    background: var(--p5-yellow);
+    border: 2px solid var(--p5-white);
+    box-shadow: 5px 5px 0 var(--p5-red);
+  }
+  .float-heal {
+    color: #000;
+    background: var(--p5-green);
+    border-color: var(--p5-white);
+  }
+  .float-shield {
+    color: #000;
+    background: var(--p5-cyan);
+    border-color: var(--p5-white);
+  }
 
   .unit-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; gap: 4px; }
-  .unit-name { font-weight: 900; font-size: 0.94rem; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-  .stars { color: var(--p5-yellow); font-size: 0.86rem; text-shadow: 1px 1px 0 #000; }
-  .pos-tag { font-size: 0.66rem; background: #000; padding: 2px 6px; border: 1px solid #52525b; color: var(--p5-yellow); font-weight: 700; white-space: nowrap; }
+  .unit-name { font-weight: 900; font-size: 0.92rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .stars { color: var(--p5-yellow); font-size: 0.85rem; text-shadow: 1px 1px 0 #000; }
+  .pos-tag { font-size: 0.66rem; background: #000; padding: 2px 6px; border: 1px solid #52525b; color: var(--p5-yellow); cursor: help; font-weight: 700; white-space: nowrap; }
 
-  .bars { display: flex; flex-direction: column; gap: 5px; margin: 5px 0; }
+  /* ================= P5 血條系統：延遲扣血白殘影條 + 主血條 + 護盾覆蓋條 ================= */
+  .bars { display: flex; flex-direction: column; gap: 4px; margin: 5px 0; }
   .bar-wrap {
     width: 100%;
     height: 15px;
@@ -546,7 +838,8 @@
     outline: 1px solid #52525b;
     overflow: hidden;
     position: relative;
-    transform: skewX(-10deg);
+    cursor: help;
+    transform: skewX(-12deg);
   }
   .hp-ghost-fill {
     position: absolute;
@@ -564,21 +857,54 @@
     transition: width 0.15s ease-out;
     z-index: 2;
   }
-  .hp-base-half { position: absolute; left: 0; top: 0; height: 100%; background: var(--p5-green); transition: width 0.18s; z-index: 2; }
-  .hp-pet-half { position: absolute; left: 50%; top: 0; height: 100%; background: var(--pet-cyan); transition: width 0.18s; z-index: 2; }
+  .hp-base-half {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--p5-green);
+    transition: width 0.18s;
+    z-index: 2;
+  }
+  .hp-pet-half {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    height: 100%;
+    background: var(--pet-cyan);
+    transition: width 0.18s;
+    z-index: 2;
+  }
   .shield-fill {
     position: absolute;
     left: 0;
     bottom: 0;
     height: 55%;
-    background: repeating-linear-gradient(45deg, rgba(0, 229, 255, 0.88), rgba(0, 229, 255, 0.88) 6px, rgba(255, 255, 255, 0.92) 6px, rgba(255, 255, 255, 0.92) 12px);
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(0, 229, 255, 0.88),
+      rgba(0, 229, 255, 0.88) 6px,
+      rgba(255, 255, 255, 0.92) 6px,
+      rgba(255, 255, 255, 0.92) 12px
+    );
     border-top: 1px solid #fff;
     transition: width 0.2s ease-out;
     z-index: 3;
   }
-  .shield-text-inline { color: var(--p5-cyan); font-weight: 900; margin-left: 4px; text-shadow: 1px 1px 1px #000; }
-  .mp-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #38bdf8); transition: width 0.22s; }
-  .mp-fill.no-mp-fill { background: linear-gradient(90deg, #7f1d1d, var(--p5-red)); }
+  .shield-text-inline {
+    color: var(--p5-cyan);
+    font-weight: 900;
+    margin-left: 4px;
+    text-shadow: 1px 1px 1px #000;
+  }
+  .mp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #38bdf8);
+    transition: width 0.22s;
+  }
+  .mp-fill.no-mp-fill {
+    background: linear-gradient(90deg, #7f1d1d, var(--p5-red));
+  }
   .bar-divider { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 4; }
   .bar-text {
     position: absolute;
@@ -592,7 +918,7 @@
     align-items: center;
     justify-content: center;
     color: #fff;
-    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 0 0 4px #000;
     z-index: 5;
   }
 
@@ -610,68 +936,117 @@
     background: #000;
     padding: 1px 6px;
     color: var(--p5-yellow);
-    cursor: pointer;
+    cursor: help;
     border: 1px solid #52525b;
     font-weight: 700;
+  }
+  .mini-trait:hover { border-color: var(--p5-white); }
+
+  /* 技能極簡分類標籤 + 點擊詳情展開 */
+  .unit-skill-box {
+    margin-top: 5px;
+    background: #09090b;
+    padding: 5px 7px;
+    border-left: 3px solid var(--p5-red);
+    font-size: 0.72rem;
+  }
+  .skill-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+  }
+  .skill-title-text {
+    font-weight: 900;
+    color: #f4f4f5;
+    cursor: help;
+  }
+  .skill-detail-btn {
+    background: #18181b;
+    border: 1px solid var(--p5-yellow);
+    color: var(--p5-yellow);
+    font-size: 0.64rem;
+    font-weight: 900;
+    padding: 1px 6px;
+    cursor: pointer;
+    transform: skewX(-8deg);
+    flex-shrink: 0;
+  }
+  .skill-detail-btn:hover {
+    background: var(--p5-yellow);
+    color: #000;
   }
   .skill-tags-row {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-top: 5px;
+    margin-top: 4px;
   }
-  .skill-cat-pill {
-    font-size: 0.66rem;
-    padding: 1px 6px;
-    background: #09090b;
-    border: 1px solid #3f3f46;
-    color: #e4e4e7;
-    font-weight: 700;
-  }
-  .unit-skill-bar {
-    font-size: 0.73rem;
-    color: #e4e4e7;
-    margin-top: 5px;
-    background: #09090b;
-    padding: 4px 8px;
-    border-left: 3px solid var(--p5-red);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-  }
-  .unit-skill-bar:hover { border-left-color: var(--p5-yellow); background: #121217; }
-  .detail-btn-inline {
-    background: var(--p5-yellow);
-    color: #000;
+  .skill-mini-pill {
     font-size: 0.65rem;
-    font-weight: 900;
-    padding: 1px 6px;
-    transform: skewX(-8deg);
+    padding: 1px 5px;
+    font-weight: 700;
+    border: 1px solid #3f3f46;
+    background: #141418;
+    color: #e4e4e7;
+  }
+  .skill-mini-pill.pill-dmg { border-color: #f97316; color: #fdba74; background: rgba(249,115,22,0.12); }
+  .skill-mini-pill.pill-heal { border-color: #10b981; color: #6ee7b7; background: rgba(16,185,129,0.12); }
+  .skill-mini-pill.pill-shield { border-color: #06b6d4; color: #67e8f9; background: rgba(6,182,212,0.12); }
+  .skill-mini-pill.pill-spec { border-color: #a855f7; color: #d8b4fe; background: rgba(168,85,247,0.12); }
+
+  .skill-expanded-panel {
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top: 1px dashed #3f3f46;
+    color: #d4d4d8;
+    line-height: 1.45;
+    font-size: 0.72rem;
   }
 
-  .move-btns { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .awakening-box {
+    margin-top: 5px;
+    padding: 4px 7px;
+    background: rgba(230, 0, 18, 0.18);
+    border-left: 3px solid var(--p5-yellow);
+    color: #fef08a;
+    font-size: 0.73rem;
+  }
+  .easter-hint { font-size: 0.68rem; color: #c084fc; margin-top: 4px; font-style: italic; }
+
+  .move-btns { display: flex; gap: 4px; margin-top: 6px; }
   .move-btns button {
     flex: 1;
     background: #09090b;
     border: 1px solid #52525b;
     color: var(--text-main);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    padding: 4px 5px;
+    padding: 3px 4px;
     cursor: pointer;
-    transform: skewX(-6deg);
+    transform: skewX(-8deg);
   }
-  .move-btns button:hover:not(:disabled) { background: var(--p5-red); border-color: var(--p5-white); }
+  .move-btns button:hover:not(:disabled) {
+    background: var(--p5-red);
+    border-color: var(--p5-white);
+  }
+  .move-btns button.bench-move-btn {
+    border-color: var(--p5-cyan);
+    color: var(--p5-cyan);
+  }
+  .move-btns button.bench-move-btn:hover:not(:disabled) {
+    background: var(--p5-cyan);
+    color: #000;
+  }
   .move-btns button:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  /* ================= Controls & Battle Log (新增暫停/單步控制) ================= */
+  /* ================= Controls & Battle Log ================= */
   .bottom-section {
     width: 100%;
-    max-width: 1140px;
+    max-width: 1180px;
     display: flex;
     gap: 14px;
-    margin-top: 14px;
+    margin-top: 12px;
     flex-wrap: wrap;
   }
   .controls-box {
@@ -685,13 +1060,13 @@
     gap: 8px;
     justify-content: center;
   }
-  .step-controls-row {
+  .sub-controls-row {
     display: flex;
     gap: 6px;
   }
-  .step-controls-row .btn {
+  .sub-controls-row .btn {
     flex: 1;
-    padding: 8px 6px;
+    padding: 8px 8px;
     font-size: 0.8rem;
   }
   .btn {
@@ -705,11 +1080,14 @@
     box-shadow: 5px 5px 0 #000;
     transition: transform 0.15s, background 0.15s;
   }
-  .btn:hover:not(:disabled) { transform: skewX(-10deg) translateY(-2px); border-color: var(--p5-white); }
+  .btn:hover:not(:disabled) {
+    transform: skewX(-10deg) translateY(-2px);
+    border-color: var(--p5-white);
+  }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-primary { background: var(--p5-red); color: var(--p5-white); border-color: var(--p5-white); }
   .btn-secondary { background: var(--p5-yellow); color: #000; }
-  .btn-cyan { background: var(--p5-cyan); color: #000; }
+  .btn-cyan { background: var(--p5-cyan); color: #000; border-color: #000; }
   .btn-danger { background: #27272a; color: #fca5a5; border-color: var(--p5-red); }
 
   .log-box {
@@ -722,19 +1100,19 @@
     border: 2px solid #3f3f46;
     border-left: 6px solid var(--p5-yellow);
     box-shadow: 6px 6px 0 #000;
-    font-size: 0.84rem;
-    line-height: 1.65;
+    font-size: 0.83rem;
+    line-height: 1.62;
   }
   .log-entry { margin-bottom: 5px; border-bottom: 1px solid #18181b; padding-bottom: 3px; }
 
-  .tag-buff { background: rgba(0, 230, 118, 0.2); border: 1px solid var(--p5-green); color: var(--p5-green); padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-nerf { background: rgba(230, 0, 18, 0.25); border: 1px solid #f87171; color: #fca5a5; padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-dmg { background: rgba(249, 115, 22, 0.22); border: 1px solid #fb923c; color: #fdba74; padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-crit { background: var(--p5-yellow); border: 1px solid #000; color: #000; padding: 1px 6px; font-weight: 900; font-size: 0.8rem; display: inline-block; margin: 0 2px; transform: skewX(-8deg); }
-  .tag-heal { background: rgba(6, 182, 212, 0.22); border: 1px solid var(--p5-cyan); color: var(--p5-cyan); padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-event { background: rgba(168, 85, 247, 0.25); border: 1px solid #c084fc; color: #e9d5ff; padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
+  .tag-buff { background: rgba(0, 230, 118, 0.2); border: 1px solid var(--p5-green); color: var(--p5-green); padding: 1px 6px; font-weight: bold; font-size: 0.75rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
+  .tag-nerf { background: rgba(230, 0, 18, 0.25); border: 1px solid #f87171; color: #fca5a5; padding: 1px 6px; font-weight: bold; font-size: 0.75rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
+  .tag-dmg { background: rgba(249, 115, 22, 0.22); border: 1px solid #fb923c; color: #fdba74; padding: 1px 6px; font-weight: bold; font-size: 0.75rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
+  .tag-crit { background: var(--p5-yellow); border: 1px solid #000; color: #000; padding: 1px 6px; font-weight: 900; font-size: 0.78rem; display: inline-block; margin: 0 2px; transform: skewX(-8deg); }
+  .tag-heal { background: rgba(6, 182, 212, 0.22); border: 1px solid var(--p5-cyan); color: var(--p5-cyan); padding: 1px 6px; font-weight: bold; font-size: 0.75rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
+  .tag-event { background: rgba(168, 85, 247, 0.25); border: 1px solid #c084fc; color: #e9d5ff; padding: 1px 6px; font-weight: bold; font-size: 0.75rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
 
-  /* ================= Modals ================= */
+  /* ================= Modals (P5 斜角對話框) ================= */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -750,7 +1128,7 @@
   }
   .modal-content {
     background: var(--p5-panel);
-    max-width: 960px;
+    max-width: 980px;
     width: 100%;
     max-height: 92vh;
     overflow-y: auto;
@@ -760,8 +1138,16 @@
     text-align: center;
     position: relative;
   }
-  .modal-title { font-size: 1.38rem; font-weight: 900; margin-bottom: 4px; color: var(--p5-white); text-shadow: 3px 3px 0 #000; }
-  .modal-sub { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 12px; }
+  .modal-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .modal-title { font-size: 1.35rem; font-weight: 900; color: var(--p5-white); text-shadow: 3px 3px 0 #000; }
+  .modal-sub { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 12px; text-align: left; }
 
   .draft-overview {
     background: #09090b;
@@ -774,10 +1160,11 @@
     flex-direction: column;
     gap: 7px;
   }
-  .draft-overview-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.8rem; }
+  .draft-overview-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.79rem; }
   .draft-overview-label { color: var(--p5-yellow); font-weight: 900; min-width: 95px; }
-  .mini-unit-pill { background: var(--p5-card); border: 1px solid #52525b; padding: 3px 9px; font-weight: bold; transform: skewX(-8deg); }
+  .mini-unit-pill { background: var(--p5-card); border: 1px solid #52525b; padding: 2px 8px; font-weight: bold; transform: skewX(-8deg); }
   .mini-unit-pill.max-star-pill { border-color: var(--p5-yellow); color: var(--p5-yellow); background: #000; }
+  .mini-unit-pill.bench-pill { border-color: var(--p5-cyan); color: var(--p5-cyan); }
 
   .choices-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
   .choice-card {
@@ -791,19 +1178,19 @@
     flex-direction: column;
     justify-content: space-between;
     box-shadow: 6px 6px 0 #000;
+    clip-path: polygon(0 0, 98.5% 1.5%, 100% 98.5%, 1% 100%);
   }
   .choice-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-4px) rotate(-0.5deg);
     border-color: var(--p5-yellow);
     box-shadow: 8px 8px 0 var(--p5-red);
   }
-  .choice-card h4 { font-size: 1.05rem; margin-bottom: 6px; color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .choice-card h4 { font-size: 1.02rem; margin-bottom: 6px; color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; }
   .choice-traits { display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
-  .trait-pill { font-size: 0.72rem; background: #000; padding: 2px 8px; color: var(--p5-yellow); border: 1px solid #52525b; transform: skewX(-8deg); font-weight: 700; }
+  .trait-pill { font-size: 0.72rem; background: #000; padding: 2px 8px; color: var(--p5-yellow); cursor: help; border: 1px solid #52525b; transform: skewX(-8deg); font-weight: 700; }
   .choice-desc { font-size: 0.81rem; color: #d4d4d8; margin-bottom: 10px; line-height: 1.48; }
-  .choice-stats { font-size: 0.76rem; color: var(--text-muted); border-top: 1px solid #3f3f46; padding-top: 8px; font-weight: 700; }
+  .choice-stats { font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid #3f3f46; padding-top: 8px; font-weight: 700; }
   .upgrade-tag { background: var(--p5-yellow); color: #000; font-size: 0.7rem; padding: 2px 7px; font-weight: 900; transform: skewX(-8deg); }
-  .awakening-box { margin-top: 6px; padding: 5px 8px; background: rgba(230, 0, 18, 0.18); border-left: 3px solid var(--p5-yellow); color: #fef08a; font-size: 0.75rem; }
 
   .peek-btn {
     position: fixed;
@@ -820,20 +1207,26 @@
     box-shadow: 5px 5px 0 var(--p5-red);
   }
 
+  /* Dice Duel Modal */
   .duel-arena { display: flex; justify-content: space-around; align-items: center; background: #09090b; padding: 18px; margin: 15px 0; border: 2px solid var(--p5-red); flex-wrap: wrap; gap: 15px; }
   .duel-fighter { flex: 1; min-width: 200px; text-align: center; }
+  .duel-fighter h3 { font-size: 1.15rem; margin-bottom: 8px; }
   .dice-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
   .die-box { width: 46px; height: 46px; background: var(--p5-card); border: 2px solid var(--p5-yellow); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: #fff; box-shadow: 4px 4px 0 #000; }
+  .die-box.rolling { animation: hitShake 0.25s infinite; }
   .score-board { font-size: 1.2rem; font-weight: bold; color: var(--p5-yellow); padding: 6px 16px; background: #000; border: 2px solid var(--p5-yellow); display: inline-block; transform: skewX(-8deg); }
 
+  /* Post-Battle Stats Table */
   .stats-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; text-align: left; }
   .stats-table th, .stats-table td { padding: 8px 10px; border-bottom: 1px solid #3f3f46; }
   .stats-table th { color: var(--p5-yellow); background: #09090b; }
 
+  /* Codex Tabs */
   .codex-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
   .codex-tab { padding: 8px 16px; background: #09090b; border: 2px solid #52525b; color: var(--text-main); cursor: pointer; font-weight: 900; transform: skewX(-8deg); }
   .codex-tab.active { background: var(--p5-red); border-color: var(--p5-white); box-shadow: 4px 4px 0 #000; }
 
+  /* Floating Custom Tooltip */
   #customTooltip {
     position: fixed;
     pointer-events: none;
@@ -842,7 +1235,7 @@
     border: 2px solid var(--p5-yellow);
     color: var(--text-main);
     padding: 10px 14px;
-    max-width: 350px;
+    max-width: 360px;
     font-size: 0.82rem;
     line-height: 1.48;
     box-shadow: 6px 6px 0 var(--p5-red);
@@ -854,14 +1247,18 @@
   .hidden { display: none !important; }
 
   @media (max-width: 768px) {
-    .unit-grid, .bench-grid { grid-template-columns: 1fr; }
+    .unit-grid { grid-template-columns: 1fr; }
+    .bench-grid { grid-template-columns: 1fr; }
     .controls-box { width: 100%; }
     .p5-cutin-name { font-size: 1.5rem; }
+    .fe-clash-banner { flex-direction: column; text-align: center; }
+    .fe-side, .fe-side.enemy { flex-direction: row; text-align: left; width: 100%; }
   }
 </style>
 </head>
 <body>
 
+<!-- P5 放射集中線與斜切特寫橫幅 (Cut-in Queue Banner) -->
 <div id="p5SpeedLines" class="p5-speed-lines"></div>
 <div id="p5CutInOverlay" class="p5-cutin-overlay hidden">
   <div id="p5CutInContent"></div>
@@ -871,100 +1268,130 @@
   <div class="title-area">
     <h1>
       <span>♟️ 《DC BON 全明星自動戰棋》</span>
-      <span class="abyss-tag">硬核深淵：命數與極意</span>
+      <span class="subtitle-tag">硬核深淵：命數與極意</span>
     </h1>
   </div>
   <div class="header-right">
-    <div class="lives-badge" id="livesDisplay" title="戰敗時扣除1命並重置當關敵方；2命耗盡時Game Over">❤️❤️ (2/2)</div>
-    <div class="reroll-badge" id="rerollHeaderDisplay">🎲 重骰: 2/2</div>
+    <div class="reroll-badge" id="rerollHeaderBadge" onmouseenter="showSimpleTooltip(event, 'reroll')" onmouseleave="hideTooltip()">🎲 重骰: 2/2</div>
+    <div class="lives-badge" id="livesDisplay" onmouseenter="showSimpleTooltip(event, 'lives')" onmouseleave="hideTooltip()">❤️❤️ (2/2)</div>
+    <button class="sound-btn" id="soundToggleBtn" onclick="toggleSound()">🔊 音效: 開</button>
     <button class="codex-btn" onclick="openCodex()">📘 深淵圖鑑</button>
     <div class="stage-badge" id="stageDisplay">STAGE 1 / 8</div>
   </div>
 </header>
 
-<!-- 死鬥疲勞 (Sudden Death) 頂部通知橫幅 -->
+<!-- 全局死鬥疲勞 (Sudden Death) 頂部醒目橫幅 -->
 <div id="suddenDeathBanner" class="sudden-death-banner hidden">
-  🔥 【死鬥疲勞啟動！】戰鬥已超過負荷回合：全場每輪治療效果遞減 15%、雙方造成傷害遞增 15%！
+  <span>🔥 【死鬥疲勞 SUDDEN DEATH】已突破 180 次行動！死線狂暴啟動！</span>
+  <span id="suddenDeathStats">全場造成傷害 +15% ｜ 治療效果 -15%</span>
 </div>
 
 <div class="status-bar">
-  <div class="status-box">
-    <h3>🔗 場上羈絆陣營 (點擊查看詳情 | 亮起頭像代表已上陣成員)</h3>
+  <div class="status-box" style="flex: 1.35;">
+    <h3>
+      <span>🔗 戰場羈絆追蹤 (點亮頭像為當前上陣英雄)</span>
+      <span id="actionTickDisplay" style="color:var(--p5-cyan); font-size:0.75rem;">⏱️ 行動數: 0 / 180</span>
+    </h3>
     <div class="badge-list" id="synergyList">尚未上陣英雄</div>
   </div>
-  <div class="status-box">
+  <div class="status-box" style="flex: 1;">
     <h3>⚡ 海克斯增幅</h3>
     <div class="badge-list" id="augmentList">尚未獲得增幅</div>
   </div>
 </div>
 
 <div class="arena">
-  <!-- 《聖火降魔錄》式左右交戰對峙橫幅 -->
-  <div class="fe-clash-bar" id="feClashBar">
-    <div class="fe-side" id="feLeftSide" style="color:var(--p5-green);">🟢 等待開戰指令...</div>
-    <div class="fe-center-action" id="feCenterText">⚔️ 戰場空間準備就緒</div>
-    <div class="fe-side" id="feRightSide" style="color:var(--p5-red);">🔴 深淵守衛鎮守中</div>
+  <!-- 《聖火降魔錄》風格左右對峙交戰橫幅 (FE Battle Forecast Banner) -->
+  <div class="fe-clash-banner" id="feClashBanner">
+    <div class="fe-side ally" id="feAllySide">
+      <div class="fe-portrait">♟️</div>
+      <div class="fe-info">
+        <div class="fe-name-row"><span>我方戰術陣列</span></div>
+        <div><span class="fe-weapon-tag">戰前佈陣階段（可調整 1~4 號站位或與冷板凳交換）</span></div>
+      </div>
+    </div>
+    <div class="fe-center-vs" id="feCenterVs">
+      <div class="fe-vs-badge">READY TO CLASH</div>
+      <div class="fe-range-pill">🗺️ 空間棋盤射程系統</div>
+    </div>
+    <div class="fe-side enemy" id="feEnemySide">
+      <div class="fe-portrait">👹</div>
+      <div class="fe-info">
+        <div class="fe-name-row"><span>深淵守衛陣列</span></div>
+        <div><span class="fe-weapon-tag">點擊下方「開始本關戰鬥」或「單步推進」交鋒</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 空間棋盤雷達與射程座標列 -->
+  <div class="spatial-radar-bar" id="spatialRadarBar">
+    <div class="radar-cells" id="allyRadarCells"></div>
+    <div style="color:var(--p5-yellow); font-weight:900; font-size:0.75rem;" id="radarTrajectoryText">⚡ 戰場空間距離待命</div>
+    <div class="radar-cells" id="enemyRadarCells"></div>
   </div>
 
   <div class="battlefield">
     <div class="team-column">
       <div class="team-header ally">
-        <span>🟢 我方出戰小隊 (上限 4 人 | 1號位前排承傷)</span>
+        <span>🟢 我方出戰小隊 (場上上限 4 人 | ★3 解鎖極意)</span>
         <span id="allyCount">0 / 4</span>
       </div>
       <div class="unit-grid" id="allyGrid"></div>
+
+      <!-- 新增 2 格冷板凳備戰區 -->
+      <div class="bench-container">
+        <div class="bench-header">
+          <span>🪑 冷板凳備戰區 (上限 2 格｜戰前可隨時與場上交換，選秀同名自動跨板凳合成升星)</span>
+          <span id="benchCount">0 / 2</span>
+        </div>
+        <div class="bench-grid" id="benchGrid"></div>
+      </div>
     </div>
+
     <div class="team-column">
       <div class="team-header enemy">
-        <span>🔴 深淵守衛 (第 8 關終極魔王：👹 楊守正)</span>
+        <span>🔴 深淵守衛 (第 8 關終極 Boss：👹 楊守正)</span>
         <span id="enemyStageName">第 1 關對手</span>
       </div>
       <div class="unit-grid" id="enemyGrid"></div>
     </div>
-  </div>
-
-  <!-- 2 格冷板凳 (備戰區) -->
-  <div class="bench-section">
-    <div class="bench-header">
-      <span>🪑 冷板凳備戰區 (上限 2 人 | 戰前可隨時與場上交換，選秀抽中同名角色自動跨板凳合成升星)</span>
-      <span id="benchCount">0 / 2</span>
-    </div>
-    <div class="bench-grid" id="benchGrid"></div>
   </div>
 </div>
 
 <div class="bottom-section">
   <div class="controls-box">
     <button class="btn btn-primary" id="startBattleBtn" onclick="startBattle()">⚔️ 開始本關戰鬥</button>
-    <div class="step-controls-row">
-      <button class="btn btn-cyan" id="pauseBattleBtn" onclick="togglePauseBattle()" disabled>⏸️ 暫停回合</button>
-      <button class="btn btn-secondary" id="stepBattleBtn" onclick="stepSingleTurn()" disabled>⏭️ 單步推進</button>
+    <div class="sub-controls-row">
+      <button class="btn btn-secondary" id="pauseBattleBtn" onclick="toggleBattlePause()" disabled>⏸️ 暫停回合</button>
+      <button class="btn btn-cyan" id="stepBattleBtn" onclick="stepSingleTurn()">⏭️ 單步執行</button>
     </div>
-    <button class="btn btn-secondary" id="speedBtn" onclick="toggleSpeed()">⏩ 戰鬥速度: 1x</button>
-    <button class="btn btn-danger" onclick="resetGame()">🔄 重新開局</button>
+    <div class="sub-controls-row">
+      <button class="btn btn-secondary" id="speedBtn" onclick="toggleSpeed()">⏩ 速度: 1x</button>
+      <button class="btn btn-danger" onclick="resetGame()">🔄 重新開局</button>
+    </div>
   </div>
   <div class="log-box" id="battleLog"></div>
 </div>
 
-<!-- 1. 選卡、海克斯增幅與重骰 Modal -->
+<!-- 1. 選卡、海克斯增幅與【🥬 大力生菜】指定升星 Modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-content" id="draftModalContent">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px;">
-      <div style="text-align:left;">
-        <h2 class="modal-title" id="modalTitle">選擇你的初始英雄</h2>
-        <p class="modal-sub" id="modalSub" style="margin-bottom:0;">從以下 3 位 Discord 成員中招募 1 位加入隊伍或冷板凳</p>
-      </div>
-      <button class="btn btn-cyan" id="rerollDraftBtn" onclick="rerollDraftChoices()" style="padding:8px 14px;">🎲 重骰選秀 (剩餘 2 次)</button>
+    <div class="modal-top-bar">
+      <h2 class="modal-title" id="modalTitle">選擇你的初始英雄</h2>
+      <button class="btn btn-cyan" id="rerollDraftBtn" style="padding:7px 14px; font-size:0.84rem;" onclick="rerollCurrentDraft()">
+        🎲 重骰刷新選項 (剩餘 2/2)
+      </button>
     </div>
-
+    <p class="modal-sub" id="modalSub">從以下 3 位成員中招募 1 位加入隊伍</p>
+    
     <div class="draft-overview" id="draftOverview">
       <div class="draft-overview-row">
-        <span class="draft-overview-label">🟢 場上小隊：</span>
+        <span class="draft-overview-label">🟢 場上隊伍：</span>
         <div id="draftTeamPreview" style="display:flex; gap:6px; flex-wrap:wrap;">尚未招募</div>
       </div>
       <div class="draft-overview-row">
         <span class="draft-overview-label">🪑 冷板凳區：</span>
-        <div id="draftBenchPreview" style="display:flex; gap:6px; flex-wrap:wrap;">空置</div>
+        <div id="draftBenchPreview" style="display:flex; gap:6px; flex-wrap:wrap;">空置 (0/2)</div>
       </div>
       <div class="draft-overview-row">
         <span class="draft-overview-label">🔗 當前羈絆：</span>
@@ -991,7 +1418,7 @@
   <div class="modal-content" id="reportContent"></div>
 </div>
 
-<!-- 4. 內建全圖鑑與技能詳情 Modal -->
+<!-- 4. 內建全圖鑑 Modal -->
 <div class="modal-overlay hidden" id="codexModal">
   <div class="modal-content">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -999,7 +1426,7 @@
       <button class="btn btn-danger" style="padding:6px 14px;" onclick="closeCodex()">✖ 關閉</button>
     </div>
     <div class="codex-tabs">
-      <button class="codex-tab active" id="tabHeroes" onclick="renderCodexTab('heroes')">🦸‍♂️ 全英雄 & 魔王 (19位)</button>
+      <button class="codex-tab active" id="tabHeroes" onclick="renderCodexTab('heroes')">🦸‍♂️ 全英雄 & Boss (19位)</button>
       <button class="codex-tab" id="tabTraits" onclick="renderCodexTab('traits')">🔗 羈絆說明 (10大陣營)</button>
       <button class="codex-tab" id="tabAugments" onclick="renderCodexTab('augments')">⚡ 海克斯增幅 (14款)</button>
     </div>
@@ -1007,16 +1434,11 @@
   </div>
 </div>
 
-<!-- 5. 角色技能完整詳情彈窗 (點擊卡片「詳情」展開，徹底避免引號轉義外露) -->
-<div class="modal-overlay hidden" id="unitDetailModal">
-  <div class="modal-content" style="max-width: 540px; text-align:left;" id="unitDetailContent"></div>
-</div>
-
-<!-- 6. 重新開局確認 Modal -->
+<!-- 5. 重新開局確認 Modal (P5 風格，取代原生 confirm) -->
 <div class="modal-overlay hidden" id="confirmResetModal">
   <div class="modal-content" style="max-width: 440px;">
     <h2 class="modal-title" style="color:var(--p5-red);">🔄 確定要重新開始新一局嗎？</h2>
-    <p class="modal-sub" style="margin-top:8px;">目前的隊伍陣容、冷板凳、關卡進度與海克斯增幅將會重置，並返回第 1 關重新選秀。</p>
+    <p class="modal-sub" style="margin-top:8px; text-align:center;">目前的場上陣容、冷板凳、關卡進度、重骰次數與海克斯增幅將會重置，並返回第 1 關重新選秀。</p>
     <div style="display:flex; gap:12px; justify-content:center; margin-top:18px;">
       <button class="btn btn-primary" style="width:150px;" onclick="confirmResetGame()">✔ 確定重開</button>
       <button class="btn btn-secondary" style="width:150px;" onclick="closeResetModal()">✖ 取消返回</button>
