@@ -1,938 +1,843 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>《DC BON 全明星自動戰棋》V4【硬核深淵：命數與極意】</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --p5-black: #0a0a0c;
-    --p5-panel: #141418;
-    --p5-card: #1d1d24;
-    --p5-red: #e60012;
-    --p5-crimson: #b8000e;
-    --p5-white: #ffffff;
-    --p5-yellow: #ffe600;
-    --p5-cyan: #00e5ff;
-    --p5-green: #00e676;
-    --sis-pink: #ff2a85;
-    --pet-cyan: #06b6d4;
-    --text-main: #f8f9fa;
-    --text-muted: #a1a1aa;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>《DC BON 全明星自動戰棋》— 硬核深淵：命數與極意</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --p5-red: #e60012;
+      --p5-dark: #0b0b0f;
+      --p5-panel: #16161f;
+      --p5-gold: #facc15;
+      --p5-cyan: #38bdf8;
+      --p5-green: #22c55e;
+      --p5-purple: #a855f7;
+    }
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 20%, #24070d 0%, #09090d 75%);
+      color: #f8fafc;
+      font-family: 'Noto Sans TC', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
 
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Noto Sans TC', 'Segoe UI', 'Microsoft JhengHei', sans-serif;
-  }
+    /* 頂部狀態列 */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: linear-gradient(90deg, #0b0b0f 0%, #1f060a 50%, #0b0b0f 100%);
+      border-bottom: 3px solid var(--p5-red);
+      box-shadow: 0 4px 20px rgba(230, 0, 18, 0.35);
+      position: relative;
+      z-index: 20;
+    }
+    .game-title {
+      font-weight: 900;
+      font-size: 1.35rem;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 0 var(--p5-red);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .top-stats {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .stat-pill {
+      background: #181824;
+      border: 2px solid #fff;
+      padding: 4px 12px;
+      font-weight: 900;
+      font-size: 0.92rem;
+      clip-path: polygon(6% 0, 100% 0, 94% 100%, 0% 100%);
+      box-shadow: 3px 3px 0 var(--p5-red);
+    }
+    .control-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .p5-btn {
+      background: var(--p5-red);
+      color: #fff;
+      border: 2px solid #fff;
+      padding: 7px 16px;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 900;
+      font-size: 0.92rem;
+      cursor: pointer;
+      clip-path: polygon(6% 0, 100% 0, 94% 100%, 0% 100%);
+      box-shadow: 3px 3px 0 #000;
+      transition: transform 0.12s, background 0.15s;
+    }
+    .p5-btn:hover:not(:disabled) {
+      transform: translate(-2px, -2px) scale(1.03);
+      background: #ff1a2d;
+    }
+    .p5-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .p5-btn.secondary {
+      background: #27273a;
+    }
+    .p5-btn.gold {
+      background: #d97706;
+      border-color: var(--p5-gold);
+    }
 
-  body {
-    background-color: var(--p5-black);
-    background-image:
-      radial-gradient(circle at 15% 20%, rgba(230, 0, 18, 0.22) 0%, transparent 40%),
-      radial-gradient(circle at 85% 80%, rgba(230, 0, 18, 0.18) 0%, transparent 45%),
-      repeating-linear-gradient(-45deg, #0d0d10 0px, #0d0d10 14px, #131318 14px, #131318 28px);
-    color: var(--text-main);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    padding: 14px;
-    overflow-x: hidden;
-  }
+    /* 死鬥疲勞橫幅 */
+    .fatigue-banner {
+      background: repeating-linear-gradient(-45deg, #991b1b, #991b1b 14px, #dc2626 14px, #dc2626 28px);
+      color: #fff;
+      text-align: center;
+      padding: 6px 12px;
+      font-weight: 900;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      border-bottom: 2px solid var(--p5-gold);
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.7);
+      animation: pulseAlert 0.9s infinite alternate;
+    }
+    @keyframes pulseAlert {
+      from { filter: brightness(0.95); }
+      to { filter: brightness(1.2); }
+    }
+    .hidden { display: none !important; }
 
-  /* P5 Anton Display Typography */
-  .p5-font, .stage-badge, .float-text, .p5-cutin-name, .score-board {
-    font-family: 'Anton', 'Noto Sans TC', sans-serif;
-    letter-spacing: 1px;
-  }
+    /* 主戰場三欄佈局 */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr 310px;
+      gap: 14px;
+      padding: 14px 18px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    @media (max-width: 1150px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  /* ================= Persona 5 放射狀集中線與斜切特寫橫幅 (Cut-in Banner) ================= */
-  .p5-speed-lines {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 250;
-    opacity: 0;
-    transition: opacity 0.15s ease;
-    background: repeating-conic-gradient(
-      from 0deg at 50% 50%,
-      rgba(255, 255, 255, 0.14) 0deg 2deg,
-      transparent 2deg 9deg,
-      rgba(230, 0, 18, 0.22) 9deg 11deg,
-      transparent 11deg 18deg
-    );
-  }
-  .p5-speed-lines.active {
-    opacity: 1;
-    animation: pulseLines 0.25s infinite alternate;
-  }
-  @keyframes pulseLines {
-    0% { transform: scale(1) rotate(0deg); }
-    100% { transform: scale(1.06) rotate(1.5deg); }
-  }
+    /* 左側：TFT 風格羈絆追蹤與海克斯 */
+    .side-panel {
+      background: rgba(20, 20, 30, 0.92);
+      border: 2px solid #2e2e42;
+      padding: 12px;
+      border-radius: 4px;
+      box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .panel-title {
+      font-weight: 900;
+      font-size: 1rem;
+      color: var(--p5-gold);
+      border-left: 4px solid var(--p5-red);
+      padding-left: 8px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .trait-card {
+      background: #12121a;
+      border: 1px solid #2e2e42;
+      border-left: 4px solid #64748b;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      transition: transform 0.15s;
+    }
+    .trait-card.active {
+      border-left-color: var(--p5-gold);
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.12) 0%, #12121a 100%);
+    }
+    .trait-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 900;
+      font-size: 0.9rem;
+    }
+    .trait-tier-badge {
+      background: #27273a;
+      padding: 1px 7px;
+      border-radius: 3px;
+      font-size: 0.78rem;
+      color: var(--p5-gold);
+    }
+    .trait-desc-line {
+      font-size: 0.76rem;
+      color: #cbd5e1;
+      margin: 4px 0 6px 0;
+    }
+    /* TFT 英雄頭像列表 */
+    .trait-avatars {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .trait-mini-avatar {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      background: #1e1e2a;
+      color: #64748b;
+      border: 1px solid #334155;
+    }
+    .trait-mini-avatar.on-board {
+      background: rgba(230, 0, 18, 0.25);
+      color: #fff;
+      border-color: var(--p5-gold);
+      box-shadow: 0 0 6px rgba(250, 204, 21, 0.45);
+      font-weight: 700;
+    }
 
-  .p5-cutin-overlay {
-    position: fixed;
-    top: 28%;
-    left: -5%;
-    width: 110%;
-    z-index: 260;
-    pointer-events: none;
-    transform: rotate(-5deg);
-    animation: cutInSlide 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  @keyframes cutInSlide {
-    0% { transform: translateX(-100%) rotate(-5deg) scaleY(0.2); opacity: 0; }
-    18% { transform: translateX(0%) rotate(-5deg) scaleY(1.05); opacity: 1; }
-    80% { transform: translateX(0%) rotate(-5deg) scaleY(1); opacity: 1; }
-    100% { transform: translateX(100%) rotate(-5deg) scaleY(0.1); opacity: 0; }
-  }
+    /* 中央：聖火對峙視窗 + 6x4 棋盤 + 冷板凳 */
+    .center-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
 
-  .p5-cutin-slash {
-    background: linear-gradient(90deg, #000 0%, var(--p5-red) 25%, #000 85%);
-    border-top: 5px solid var(--p5-white);
-    border-bottom: 6px solid var(--p5-yellow);
-    box-shadow: 0 14px 0 #000, 0 -8px 0 #000;
-    padding: 16px 10%;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    clip-path: polygon(0 8%, 100% 0%, 98% 92%, 2% 100%);
-  }
-  .active-awakening .p5-cutin-slash {
-    background: linear-gradient(90deg, #000 0%, #d97706 20%, var(--p5-red) 65%, #000 95%);
-    border-top-color: var(--p5-yellow);
-    border-bottom-color: var(--p5-white);
-  }
-  .active-boss .p5-cutin-slash {
-    background: linear-gradient(90deg, #000 0%, #7f1d1d 20%, #ff0022 60%, #000 95%);
-    border-top-color: #ff0022;
-    border-bottom-color: var(--p5-yellow);
-  }
-  .p5-cutin-icon {
-    font-size: 4.2rem;
-    background: var(--p5-black);
-    border: 4px solid var(--p5-white);
-    padding: 6px 18px;
-    transform: skewX(-12deg);
-    box-shadow: 8px 8px 0 var(--p5-yellow);
-  }
-  .p5-cutin-name {
-    font-size: 2.3rem;
-    font-weight: 900;
-    color: var(--p5-white);
-    text-transform: uppercase;
-    text-shadow: 4px 4px 0 #000, -2px -2px 0 var(--p5-red);
-    line-height: 1.1;
-  }
-  .p5-cutin-sub {
-    font-size: 1.15rem;
-    font-weight: 900;
-    color: var(--p5-yellow);
-    background: #000;
-    display: inline-block;
-    padding: 3px 12px;
-    margin-top: 6px;
-    transform: skewX(-10deg);
-    border-left: 4px solid var(--p5-white);
-  }
+    /* 《聖火降魔錄》式左右對峙交戰橫幅 */
+    .fe-forecast-bar {
+      min-height: 68px;
+      background: linear-gradient(90deg, rgba(22, 78, 99, 0.92) 0%, #09090d 48%, #09090d 52%, rgba(127, 29, 29, 0.92) 100%);
+      border: 2px solid #fff;
+      clip-path: polygon(1% 0, 100% 0, 99% 100%, 0% 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 18px;
+      box-shadow: 4px 4px 0 var(--p5-red);
+      transition: opacity 0.2s;
+    }
+    .fe-side {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 42%;
+    }
+    .fe-side.right {
+      justify-content: flex-end;
+      text-align: right;
+    }
+    .fe-avatar {
+      font-size: 2rem;
+      background: #111;
+      border: 2px solid var(--p5-gold);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-4deg);
+    }
+    .fe-info-name {
+      font-weight: 900;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+    .fe-info-sub {
+      font-size: 0.78rem;
+      color: var(--p5-gold);
+      font-weight: 700;
+    }
+    .fe-vs-center {
+      font-family: 'Anton', sans-serif;
+      font-size: 1.5rem;
+      color: var(--p5-gold);
+      text-shadow: 2px 2px 0 var(--p5-red);
+      text-align: center;
+      letter-spacing: 1px;
+    }
 
-  /* ================= Header & Top Bar (P5 剪紙斜角風格) ================= */
-  header {
-    width: 100%;
-    max-width: 1140px;
-    background: var(--p5-panel);
-    padding: 14px 22px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-    border: 3px solid var(--p5-white);
-    box-shadow: 7px 7px 0px var(--p5-red), 12px 12px 0px #000;
-    clip-path: polygon(0 0, 99.2% 4%, 100% 100%, 0.6% 96%);
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .title-area h1 {
-    font-size: 1.35rem;
-    font-weight: 900;
-    color: var(--p5-white);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-shadow: 3px 3px 0 #000;
-    flex-wrap: wrap;
-  }
-  .v4-tag {
-    background: var(--p5-red);
-    color: var(--p5-white);
-    font-size: 0.78rem;
-    padding: 3px 10px;
-    border: 2px solid var(--p5-white);
-    transform: skewX(-12deg);
-    box-shadow: 3px 3px 0 #000;
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .lives-badge {
-    background: #000;
-    color: var(--p5-white);
-    border: 2px solid var(--p5-red);
-    padding: 5px 14px;
-    font-weight: 900;
-    font-size: 0.95rem;
-    transform: skewX(-10deg);
-    box-shadow: 4px 4px 0 var(--p5-red);
-  }
-  .stage-badge {
-    background: var(--p5-red);
-    color: var(--p5-white);
-    padding: 5px 16px;
-    border: 2px solid var(--p5-white);
-    font-weight: 900;
-    font-size: 1rem;
-    transform: skewX(-10deg);
-    box-shadow: 4px 4px 0 #000;
-  }
-  .codex-btn {
-    background: var(--p5-yellow);
-    color: #000;
-    border: 2px solid #000;
-    padding: 6px 14px;
-    cursor: pointer;
-    font-weight: 900;
-    font-size: 0.88rem;
-    transform: skewX(-10deg);
-    box-shadow: 4px 4px 0 #000;
-    transition: transform 0.15s, background 0.15s;
-  }
-  .codex-btn:hover {
-    background: var(--p5-white);
-    transform: skewX(-10deg) translateY(-2px);
-  }
+    /* 6x4 TFT 戰術棋盤 */
+    .board-wrapper {
+      position: relative;
+      background: #101018;
+      border: 3px solid #334155;
+      padding: 12px;
+      border-radius: 6px;
+      box-shadow: inset 0 0 35px rgba(0,0,0,0.85), 6px 6px 0 #000;
+    }
+    .board-hint {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+    .tactical-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(4, 108px);
+      gap: 8px;
+      position: relative;
+      z-index: 2;
+    }
+    .grid-cell {
+      background: rgba(30, 41, 59, 0.45);
+      border: 1.5px solid rgba(148, 163, 184, 0.22);
+      border-radius: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .grid-cell.enemy-zone {
+      background: rgba(127, 29, 29, 0.16);
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+    .grid-cell.ally-zone {
+      background: rgba(14, 116, 144, 0.15);
+      border-color: rgba(56, 189, 248, 0.28);
+      cursor: pointer;
+    }
+    .grid-cell.ally-zone:hover {
+      border-color: var(--p5-gold);
+      background: rgba(250, 204, 21, 0.12);
+    }
+    .grid-cell.selected-cell {
+      border: 2px solid var(--p5-gold) !important;
+      box-shadow: inset 0 0 14px rgba(250, 204, 21, 0.55);
+    }
+    .grid-cell.in-range-highlight {
+      background: rgba(230, 0, 18, 0.28) !important;
+      border-color: #ef4444 !important;
+    }
+    .cell-coord {
+      position: absolute;
+      bottom: 3px;
+      right: 5px;
+      font-size: 0.62rem;
+      color: rgba(148, 163, 184, 0.28);
+      pointer-events: none;
+    }
 
-  /* ================= Status Bar ================= */
-  .status-bar {
-    width: 100%;
-    max-width: 1140px;
-    display: flex;
-    gap: 14px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .status-box {
-    flex: 1;
-    min-width: 300px;
-    background: var(--p5-panel);
-    padding: 12px 16px;
-    border: 2px solid #3f3f46;
-    border-left: 6px solid var(--p5-red);
-    box-shadow: 6px 6px 0 #000;
-    clip-path: polygon(0 0, 100% 2%, 99.3% 100%, 0.4% 98%);
-  }
-  .status-box h3 {
-    font-size: 0.8rem;
-    color: var(--p5-yellow);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 900;
-  }
-  .badge-list { display: flex; flex-wrap: wrap; gap: 7px; }
-  .badge {
-    background: var(--p5-card);
-    padding: 5px 10px;
-    font-size: 0.8rem;
-    border: 2px solid #52525b;
-    cursor: help;
-    transform: skewX(-8deg);
-    box-shadow: 3px 3px 0 #000;
-    transition: transform 0.15s, border-color 0.15s;
-  }
-  .badge:hover { transform: skewX(-8deg) translateY(-2px); border-color: var(--p5-white); }
-  .badge.active-gold {
-    background: #000;
-    border-color: var(--p5-yellow);
-    color: var(--p5-yellow);
-    font-weight: 900;
-    box-shadow: 3px 3px 0 var(--p5-red);
-  }
-  .badge.active-sis {
-    background: rgba(255, 42, 133, 0.25);
-    border-color: var(--sis-pink);
-    color: #fbcfe8;
-    font-weight: 900;
-  }
-  .badge.augment {
-    background: rgba(230, 0, 18, 0.2);
-    border-color: var(--p5-red);
-    color: #fecdd3;
-    font-weight: 700;
-  }
+    /* 棋盤上的英雄戰術棋子 (Token) */
+    .unit-token {
+      width: 94%;
+      height: 94%;
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid #38bdf8;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 4px 5px;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s;
+      box-shadow: 3px 3px 0 #000;
+    }
+    .unit-token.enemy {
+      border-color: #ef4444;
+      background: linear-gradient(145deg, #311016 0%, #14070a 100%);
+    }
+    .unit-token.star-3 {
+      border-color: var(--p5-gold);
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.55), 3px 3px 0 #000;
+    }
+    .unit-token.demonized {
+      border-color: #dc2626;
+      box-shadow: 0 0 16px #ef4444;
+      animation: demonGlow 0.7s infinite alternate;
+    }
+    @keyframes demonGlow {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+    .unit-token.acting {
+      transform: translateY(-6px) scale(1.06);
+      z-index: 10;
+    }
 
-  /* ================= Main Arena ================= */
-  .arena {
-    width: 100%;
-    max-width: 1140px;
-    background: var(--p5-panel);
-    padding: 20px;
-    border: 3px solid var(--p5-white);
-    box-shadow: 8px 8px 0 #000;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    position: relative;
-  }
-  .battlefield {
-    display: flex;
-    justify-content: space-between;
-    align-items: stretch;
-    gap: 22px;
-    min-height: 330px;
-    flex-wrap: wrap;
-  }
-  .team-column {
-    flex: 1;
-    min-width: 310px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .team-header {
-    font-size: 0.96rem;
-    font-weight: 900;
-    padding: 6px 12px;
-    background: #000;
-    border-left: 6px solid var(--p5-white);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transform: skewX(-6deg);
-    box-shadow: 4px 4px 0 #000;
-  }
-  .team-header.ally { color: var(--p5-green); border-left-color: var(--p5-green); }
-  .team-header.enemy { color: var(--p5-red); border-left-color: var(--p5-red); }
-  .unit-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    flex: 1;
-  }
+    /* 棋子頂部：星級與射程/模式標記 */
+    .token-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.68rem;
+      font-weight: 900;
+    }
+    .token-stars {
+      color: var(--p5-gold);
+      letter-spacing: -1px;
+    }
+    .token-range-badge {
+      background: rgba(0,0,0,0.65);
+      color: #cbd5e1;
+      padding: 0 4px;
+      border-radius: 3px;
+      font-size: 0.62rem;
+    }
 
-  /* ================= Unit Card (P5 剪紙幾何切割 + 硬邊落影) ================= */
-  .unit-card {
-    background: var(--p5-card);
-    padding: 11px;
-    border: 2px solid #52525b;
-    position: relative;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: visible;
-    box-shadow: 6px 6px 0px #000;
-    clip-path: polygon(0 0, 98.5% 2%, 100% 98%, 1.2% 100%);
-  }
-  .unit-card.frontline {
-    border-left: 6px solid var(--p5-yellow);
-  }
-  .unit-card.awakened-star3 {
-    border-color: var(--p5-yellow);
-    box-shadow: 6px 6px 0px var(--p5-red);
-  }
-  .unit-card.dead {
-    opacity: 0.30;
-    filter: grayscale(100%) contrast(140%);
-  }
-  .unit-card.ritual-mode {
-    border-style: dashed;
-    border-color: #c084fc;
-    background: rgba(168, 85, 247, 0.12);
-  }
-  .unit-card.pet-buffed {
-    border-color: var(--pet-cyan);
-  }
-  .unit-card.pet-weakened {
-    border-color: var(--p5-red);
-  }
-  .unit-card.overdrive-mode {
-    box-shadow: 6px 6px 0px var(--p5-red), 0 0 14px rgba(230, 0, 18, 0.65);
-    border-color: var(--p5-red);
-  }
-  .unit-card.demonized-mode {
-    background: linear-gradient(135deg, #1a0508 0%, #2d060b 100%);
-    border: 2px solid var(--p5-red);
-    box-shadow: 6px 6px 0px var(--p5-yellow);
-  }
-  .unit-card.boss-card-mode {
-    background: linear-gradient(135deg, #1f0808 0%, #141418 100%);
-    border: 3px solid var(--p5-red);
-    box-shadow: 7px 7px 0px #000;
-  }
+    /* 棋子中央：主 Icon + 背後靈/狀態浮標 */
+    .token-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 1px 0;
+    }
+    .token-icon {
+      font-size: 1.65rem;
+      line-height: 1;
+      filter: drop-shadow(2px 2px 0 #000);
+    }
+    .companion-float {
+      position: absolute;
+      right: 4px;
+      top: -4px;
+      font-size: 0.95rem;
+      animation: floatBob 1.2s infinite ease-in-out alternate;
+    }
+    @keyframes floatBob {
+      from { transform: translateY(0px); }
+      to { transform: translateY(-5px); }
+    }
+    .mode-pill {
+      position: absolute;
+      left: 2px;
+      top: -3px;
+      font-size: 0.6rem;
+      font-weight: 900;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: var(--p5-purple);
+      color: #fff;
+    }
 
-  .p5-awake-badge {
-    background: var(--p5-red);
-    color: var(--p5-white);
-    font-size: 0.66rem;
-    padding: 1px 5px;
-    border: 1px solid var(--p5-yellow);
-    transform: skewX(-10deg);
-    font-weight: 900;
-  }
+    .token-name {
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  @keyframes lungeAlly {
-    0% { transform: translateX(0); }
-    45% { transform: translateX(24px) scale(1.05) rotate(-1.5deg); border-color: var(--p5-white); box-shadow: 10px 10px 0 var(--p5-red); }
-    100% { transform: translateX(0); }
-  }
-  @keyframes lungeEnemy {
-    0% { transform: translateX(0); }
-    45% { transform: translateX(-24px) scale(1.05) rotate(1.5deg); border-color: var(--p5-white); box-shadow: -10px 10px 0 var(--p5-red); }
-    100% { transform: translateX(0); }
-  }
-  @keyframes hitShake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-9px) rotate(-2deg); background: rgba(230, 0, 18, 0.55); border-color: var(--p5-white); }
-    60% { transform: translateX(9px) rotate(2deg); background: rgba(230, 0, 18, 0.55); }
-    80% { transform: translateX(-4px); }
-  }
-  .anim-lunge-ally { animation: lungeAlly 0.42s ease-out; z-index: 20; }
-  .anim-lunge-enemy { animation: lungeEnemy 0.42s ease-out; z-index: 20; }
-  .anim-hit { animation: hitShake 0.38s ease-in-out; z-index: 19; }
+    /* P5 三層血條（白殘影 + 主血條 + 藍斜紋護盾）與 MP 條 */
+    .bars-box {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hp-bar-outer {
+      height: 7px;
+      background: #09090d;
+      border: 1px solid #334155;
+      position: relative;
+      overflow: hidden;
+    }
+    .hp-ghost-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: #fff;
+      transition: width 0.45s ease-out;
+    }
+    .hp-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, #16a34a, #4ade80);
+      transition: width 0.15s ease-out;
+    }
+    .unit-token.enemy .hp-fill {
+      background: linear-gradient(90deg, #dc2626, #f87171);
+    }
+    .shield-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: repeating-linear-gradient(45deg, rgba(56, 189, 248, 0.88), rgba(56, 189, 248, 0.88) 4px, rgba(14, 165, 233, 0.95) 4px, rgba(14, 165, 233, 0.95) 8px);
+      border-right: 1.5px solid #fff;
+      transition: width 0.15s;
+    }
+    .mp-bar-outer {
+      height: 4px;
+      background: #09090d;
+      overflow: hidden;
+    }
+    .mp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      transition: width 0.15s;
+    }
 
-  /* ================= P5 漫畫風傷害跳字 (Floating Combat Text) ================= */
-  @keyframes floatUpP5 {
-    0% { opacity: 1; transform: translateY(0) scale(0.75) rotate(-8deg); }
-    28% { opacity: 1; transform: translateY(-18px) scale(1.22) rotate(4deg); }
-    100% { opacity: 0; transform: translateY(-42px) scale(0.95) rotate(-3deg); }
-  }
-  .float-text {
-    position: absolute;
-    top: -10px;
-    right: 8px;
-    font-weight: 900;
-    font-size: 1.15rem;
-    pointer-events: none;
-    z-index: 50;
-    animation: floatUpP5 0.9s ease-out forwards;
-    padding: 2px 8px;
-    border: 2px solid #000;
-    box-shadow: 4px 4px 0 #000;
-    transform: skewX(-10deg);
-  }
-  .float-dmg {
-    color: var(--p5-white);
-    background: var(--p5-red);
-    border-color: var(--p5-white);
-  }
-  .float-crit {
-    color: #000;
-    font-size: 1.32rem;
-    background: var(--p5-yellow);
-    border: 2px solid var(--p5-white);
-    box-shadow: 5px 5px 0 var(--p5-red);
-  }
-  .float-heal {
-    color: #000;
-    background: var(--p5-green);
-    border-color: var(--p5-white);
-  }
-  .float-shield {
-    color: #000;
-    background: var(--p5-cyan);
-    border-color: var(--p5-white);
-  }
+    /* 場上浮動文字（限制在棋盤格內，絕不遮擋右上角數據） */
+    .floating-text {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: 900;
+      font-size: 0.86rem;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 30;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+      animation: floatUpFade 0.85s ease-out forwards;
+    }
+    @keyframes floatUpFade {
+      0% { opacity: 1; transform: translate(-50%, 6px) scale(0.9); }
+      30% { transform: translate(-50%, -6px) scale(1.08); }
+      100% { opacity: 0; transform: translate(-50%, -22px) scale(0.95); }
+    }
 
-  .unit-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; gap: 4px; }
-  .unit-name { font-weight: 900; font-size: 0.95rem; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-  .stars { color: var(--p5-yellow); font-size: 0.88rem; text-shadow: 1px 1px 0 #000; }
-  .pos-tag { font-size: 0.68rem; background: #000; padding: 2px 6px; border: 1px solid #52525b; color: var(--p5-yellow); cursor: help; font-weight: 700; }
+    /* SVG 彈道與閃電特效層 */
+    #vfxSvgLayer {
+      position: absolute;
+      inset: 12px;
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      pointer-events: none;
+      z-index: 15;
+    }
 
-  /* ================= P5 血條系統：延遲扣血白殘影條 + 主血條 + 護盾覆蓋條 ================= */
-  .bars { display: flex; flex-direction: column; gap: 5px; margin: 6px 0; }
-  .bar-wrap {
-    width: 100%;
-    height: 16px;
-    background: #050507;
-    border: 2px solid #000;
-    outline: 1px solid #52525b;
-    overflow: hidden;
-    position: relative;
-    cursor: help;
-    transform: skewX(-12deg);
-  }
-  /* 延遲扣血白殘影條 (Damage Ghost Bar) */
-  .hp-ghost-fill {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    background: var(--p5-white);
-    transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-    z-index: 1;
-  }
-  .hp-fill {
-    position: relative;
-    height: 100%;
-    background: linear-gradient(90deg, #16a34a, var(--p5-green));
-    transition: width 0.15s ease-out;
-    z-index: 2;
-  }
-  .hp-base-half {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    background: var(--p5-green);
-    transition: width 0.18s;
-    z-index: 2;
-  }
-  .hp-pet-half {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    height: 100%;
-    background: var(--pet-cyan);
-    transition: width 0.18s;
-    z-index: 2;
-  }
-  /* 護盾覆蓋條 (Shield Overlay Bar) */
-  .shield-fill {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 55%;
-    background: repeating-linear-gradient(
-      45deg,
-      rgba(0, 229, 255, 0.88),
-      rgba(0, 229, 255, 0.88) 6px,
-      rgba(255, 255, 255, 0.92) 6px,
-      rgba(255, 255, 255, 0.92) 12px
-    );
-    border-top: 1px solid #fff;
-    transition: width 0.2s ease-out;
-    z-index: 3;
-  }
-  .shield-text-inline {
-    color: var(--p5-cyan);
-    font-weight: 900;
-    margin-left: 4px;
-    text-shadow: 1px 1px 1px #000;
-  }
-  .mp-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #2563eb, #38bdf8);
-    transition: width 0.22s;
-  }
-  .mp-fill.no-mp-fill {
-    background: linear-gradient(90deg, #7f1d1d, var(--p5-red));
-  }
-  .bar-divider { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 4; }
-  .bar-text {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    font-size: 0.68rem;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 0 0 4px #000;
-    z-index: 5;
-  }
+    /* 下方：2 格冷板凳 (Bench) 與 角色極簡資訊預覽區 */
+    .bottom-bar-grid {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 850px) {
+      .bottom-bar-grid { grid-template-columns: 1fr; }
+    }
+    .bench-box {
+      background: #14141f;
+      border: 2px solid #334155;
+      padding: 8px 10px;
+      border-radius: 4px;
+    }
+    .bench-slots {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      height: 104px;
+      margin-top: 6px;
+    }
+    .bench-slot {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1.5px dashed #475569;
+      border-radius: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .bench-slot.selected-cell {
+      border: 2px solid var(--p5-gold);
+      background: rgba(250, 204, 21, 0.15);
+    }
 
-  .unit-stats {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.73rem;
-    color: #d4d4d8;
-    margin-top: 4px;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .mini-trait {
-    background: #000;
-    padding: 1px 6px;
-    color: var(--p5-yellow);
-    cursor: help;
-    border: 1px solid #52525b;
-    font-weight: 700;
-  }
-  .mini-trait:hover { border-color: var(--p5-white); }
-  .unit-skill-tag {
-    font-size: 0.73rem;
-    color: #e4e4e7;
-    margin-top: 6px;
-    background: #09090b;
-    padding: 5px 8px;
-    cursor: help;
-    border-left: 3px solid var(--p5-red);
-  }
-  .unit-skill-tag:hover { border-left-color: var(--p5-yellow); color: #fff; }
-  .awakening-box {
-    margin-top: 6px;
-    padding: 5px 8px;
-    background: rgba(230, 0, 18, 0.18);
-    border-left: 3px solid var(--p5-yellow);
-    color: #fef08a;
-    font-size: 0.76rem;
-  }
-  .easter-hint { font-size: 0.68rem; color: #c084fc; margin-top: 4px; font-style: italic; }
+    /* 選中英雄：Emoji 彩色標籤卡 + 點擊展開詳情 */
+    .inspector-box {
+      background: #14141f;
+      border: 2px solid #334155;
+      padding: 10px 14px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .inspector-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tag-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 6px 0;
+    }
+    .emoji-tag {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #f8fafc;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    . emoji-tag.role {
+      background: rgba(230, 0, 18, 0.25);
+      border-color: var(--p5-red);
+      color: var(--p5-gold);
+    }
 
-  .move-btns { display: flex; gap: 5px; margin-top: 7px; }
-  .move-btns button {
-    flex: 1;
-    background: #09090b;
-    border: 1px solid #52525b;
-    color: var(--text-main);
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 4px;
-    cursor: pointer;
-    transform: skewX(-8deg);
-  }
-  .move-btns button:hover:not(:disabled) {
-    background: var(--p5-red);
-    border-color: var(--p5-white);
-  }
-  .move-btns button:disabled { opacity: 0.35; cursor: not-allowed; }
+    /* 右側：即時傷害排行與戰報紀錄 */
+    .log-box {
+      height: 360px;
+      overflow-y: auto;
+      background: #0d0d14;
+      border: 1px solid #27273a;
+      padding: 8px;
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed rgba(255,255,255,0.07);
+    }
+    .dps-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      margin-bottom: 5px;
+      background: #12121c;
+      padding: 4px 8px;
+      border-radius: 3px;
+    }
 
-  /* ================= Controls & Battle Log ================= */
-  .bottom-section {
-    width: 100%;
-    max-width: 1140px;
-    display: flex;
-    gap: 14px;
-    margin-top: 14px;
-    flex-wrap: wrap;
-  }
-  .controls-box {
-    width: 260px;
-    background: var(--p5-panel);
-    padding: 16px;
-    border: 2px solid var(--p5-white);
-    box-shadow: 6px 6px 0 #000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    justify-content: center;
-  }
-  .btn {
-    padding: 11px 14px;
-    border: 2px solid #000;
-    font-weight: 900;
-    font-size: 0.92rem;
-    cursor: pointer;
-    color: #fff;
-    transform: skewX(-10deg);
-    box-shadow: 5px 5px 0 #000;
-    transition: transform 0.15s, background 0.15s;
-  }
-  .btn:hover:not(:disabled) {
-    transform: skewX(-10deg) translateY(-2px);
-    border-color: var(--p5-white);
-  }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-primary { background: var(--p5-red); color: var(--p5-white); border-color: var(--p5-white); }
-  .btn-secondary { background: var(--p5-yellow); color: #000; }
-  .btn-danger { background: #27272a; color: #fca5a5; border-color: var(--p5-red); }
+    /* 選秀與詳情彈窗 (Modal) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 5, 10, 0.88);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .modal-card {
+      background: #14141f;
+      border: 3px solid #fff;
+      box-shadow: 10px 10px 0 var(--p5-red);
+      max-width: 960px;
+      width: 100%;
+      padding: 20px;
+      position: relative;
+    }
+    .modal-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .draft-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 14px;
+    }
+    .choice-card {
+      background: #1c1c2b;
+      border: 2px solid #475569;
+      padding: 14px;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .choice-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--p5-gold);
+      box-shadow: 5px 5px 0 var(--p5-red);
+    }
 
-  .log-box {
-    flex: 1;
-    min-width: 300px;
-    background: #070709;
-    padding: 12px 16px;
-    height: 215px;
-    overflow-y: auto;
-    border: 2px solid #3f3f46;
-    border-left: 6px solid var(--p5-yellow);
-    box-shadow: 6px 6px 0 #000;
-    font-size: 0.84rem;
-    line-height: 1.65;
-  }
-  .log-entry { margin-bottom: 5px; border-bottom: 1px solid #18181b; padding-bottom: 3px; }
-
-  .tag-buff { background: rgba(0, 230, 118, 0.2); border: 1px solid var(--p5-green); color: var(--p5-green); padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-nerf { background: rgba(230, 0, 18, 0.25); border: 1px solid #f87171; color: #fca5a5; padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-dmg { background: rgba(249, 115, 22, 0.22); border: 1px solid #fb923c; color: #fdba74; padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-crit { background: var(--p5-yellow); border: 1px solid #000; color: #000; padding: 1px 6px; font-weight: 900; font-size: 0.8rem; display: inline-block; margin: 0 2px; transform: skewX(-8deg); }
-  .tag-heal { background: rgba(6, 182, 212, 0.22); border: 1px solid var(--p5-cyan); color: var(--p5-cyan); padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-  .tag-event { background: rgba(168, 85, 247, 0.25); border: 1px solid #c084fc; color: #e9d5ff; padding: 1px 6px; font-weight: bold; font-size: 0.76rem; display: inline-block; margin: 0 2px; transform: skewX(-6deg); }
-
-  /* ================= Modals (P5 斜角對話框) ================= */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.86);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    padding: 15px;
-  }
-  .modal-content {
-    background: var(--p5-panel);
-    max-width: 960px;
-    width: 100%;
-    max-height: 92vh;
-    overflow-y: auto;
-    padding: 24px;
-    border: 3px solid var(--p5-white);
-    box-shadow: 10px 10px 0 var(--p5-red), 16px 16px 0 #000;
-    text-align: center;
-    position: relative;
-  }
-  .modal-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 4px; color: var(--p5-white); text-shadow: 3px 3px 0 #000; }
-  .modal-sub { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px; }
-
-  .draft-overview {
-    background: #09090b;
-    border: 2px solid #3f3f46;
-    border-left: 6px solid var(--p5-yellow);
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .draft-overview-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.8rem; }
-  .draft-overview-label { color: var(--p5-yellow); font-weight: 900; min-width: 85px; }
-  .mini-unit-pill { background: var(--p5-card); border: 1px solid #52525b; padding: 3px 9px; font-weight: bold; transform: skewX(-8deg); }
-  .mini-unit-pill.max-star-pill { border-color: var(--p5-yellow); color: var(--p5-yellow); background: #000; }
-
-  .choices-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
-  .choice-card {
-    background: var(--p5-card);
-    border: 2px solid #52525b;
-    padding: 15px;
-    text-align: left;
-    cursor: pointer;
-    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 6px 6px 0 #000;
-    clip-path: polygon(0 0, 98.5% 1.5%, 100% 98.5%, 1% 100%);
-  }
-  .choice-card:hover {
-    transform: translateY(-4px) rotate(-0.5deg);
-    border-color: var(--p5-yellow);
-    box-shadow: 8px 8px 0 var(--p5-red);
-  }
-  .choice-card h4 { font-size: 1.05rem; margin-bottom: 6px; color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-  .choice-traits { display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
-  .trait-pill { font-size: 0.72rem; background: #000; padding: 2px 8px; color: var(--p5-yellow); cursor: help; border: 1px solid #52525b; transform: skewX(-8deg); font-weight: 700; }
-  .choice-desc { font-size: 0.82rem; color: #d4d4d8; margin-bottom: 10px; line-height: 1.48; }
-  .choice-stats { font-size: 0.76rem; color: var(--text-muted); border-top: 1px solid #3f3f46; padding-top: 8px; font-weight: 700; }
-  .upgrade-tag { background: var(--p5-yellow); color: #000; font-size: 0.7rem; padding: 2px 7px; font-weight: 900; transform: skewX(-8deg); }
-
-  .peek-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 150;
-    background: var(--p5-yellow);
-    color: #000;
-    border: 2px solid #000;
-    padding: 10px 18px;
-    font-weight: 900;
-    cursor: pointer;
-    transform: skewX(-10deg);
-    box-shadow: 5px 5px 0 var(--p5-red);
-  }
-
-  /* Dice Duel Modal */
-  .duel-arena { display: flex; justify-content: space-around; align-items: center; background: #09090b; padding: 18px; margin: 15px 0; border: 2px solid var(--p5-red); flex-wrap: wrap; gap: 15px; }
-  .duel-fighter { flex: 1; min-width: 200px; text-align: center; }
-  .duel-fighter h3 { font-size: 1.15rem; margin-bottom: 8px; }
-  .dice-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
-  .die-box { width: 46px; height: 46px; background: var(--p5-card); border: 2px solid var(--p5-yellow); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: #fff; box-shadow: 4px 4px 0 #000; }
-  .die-box.rolling { animation: hitShake 0.25s infinite; }
-  .score-board { font-size: 1.2rem; font-weight: bold; color: var(--p5-yellow); padding: 6px 16px; background: #000; border: 2px solid var(--p5-yellow); display: inline-block; transform: skewX(-8deg); }
-
-  /* Post-Battle Stats Table */
-  .stats-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; text-align: left; }
-  .stats-table th, .stats-table td { padding: 8px 10px; border-bottom: 1px solid #3f3f46; }
-  .stats-table th { color: var(--p5-yellow); background: #09090b; }
-
-  /* Codex Tabs */
-  .codex-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
-  .codex-tab { padding: 8px 16px; background: #09090b; border: 2px solid #52525b; color: var(--text-main); cursor: pointer; font-weight: 900; transform: skewX(-8deg); }
-  .codex-tab.active { background: var(--p5-red); border-color: var(--p5-white); box-shadow: 4px 4px 0 #000; }
-
-  /* Floating Custom Tooltip */
-  #customTooltip {
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    background: #09090b;
-    border: 2px solid var(--p5-yellow);
-    color: var(--text-main);
-    padding: 10px 14px;
-    max-width: 350px;
-    font-size: 0.82rem;
-    line-height: 1.48;
-    box-shadow: 6px 6px 0 var(--p5-red);
-    display: none;
-  }
-  #customTooltip .tt-title { font-weight: 900; color: var(--p5-yellow); font-size: 0.92rem; margin-bottom: 4px; border-bottom: 1px solid #3f3f46; padding-bottom: 3px; }
-  #customTooltip .tt-lore { font-style: italic; color: #f9a8d4; font-size: 0.75rem; margin-top: 5px; }
-
-  .hidden { display: none !important; }
-
-  @media (max-width: 768px) {
-    .unit-grid { grid-template-columns: 1fr; }
-    .controls-box { width: 100%; }
-    .p5-cutin-name { font-size: 1.5rem; }
-  }
-</style>
+    /* P5 必殺技不重疊序列特寫 (Cut-in Overlay) */
+    .p5-cutin-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+    }
+    .p5-cutin-banner {
+      width: 110%;
+      background: linear-gradient(90deg, #000 0%, var(--p5-red) 25%, #111 85%);
+      border-top: 5px solid #fff;
+      border-bottom: 5px solid var(--p5-gold);
+      transform: rotate(-5deg);
+      padding: 18px 8%;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      box-shadow: 0 0 40px rgba(230, 0, 18, 0.9);
+      animation: cutInSlide 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes cutInSlide {
+      0% { transform: translateX(-100%) rotate(-5deg); opacity: 0; }
+      18% { transform: translateX(0%) rotate(-5deg); opacity: 1; }
+      82% { transform: translateX(0%) rotate(-5deg); opacity: 1; }
+      100% { transform: translateX(100%) rotate(-5deg); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- P5 放射集中線與斜切特寫橫幅 (Cut-in Banner) -->
-<div id="p5SpeedLines" class="p5-speed-lines"></div>
-<div id="p5CutInOverlay" class="p5-cutin-overlay hidden">
-  <div id="p5CutInContent"></div>
-</div>
-
-<header>
-  <div class="title-area">
-    <h1>
+  <!-- 頂部狀態與回合暫停控制列 -->
+  <header class="top-bar">
+    <div class="game-title">
       <span>♟️ 《DC BON 全明星自動戰棋》</span>
-      <span class="v4-tag">V4 硬核深淵：命數與極意</span>
-    </h1>
-  </div>
-  <div class="header-right">
-    <div class="lives-badge" id="livesDisplay" onmouseenter="showTooltip(event, '❤️ 心心命數制 (2命)', '戰敗時扣除 1 命並將當關敵方滿血重置；當 2 命耗盡時將徹底 Game Over！')" onmouseleave="hideTooltip()">❤️❤️ (2/2)</div>
-    <button class="codex-btn" onclick="openCodex()">📘 深淵圖鑑</button>
-    <div class="stage-badge" id="stageDisplay">STAGE 1 / 8</div>
-  </div>
-</header>
+    </div>
+    <div class="top-stats">
+      <div class="stat-pill" id="stagePill">第 1 / 8 關</div>
+      <div class="stat-pill" id="livesPill">命數：❤️❤️</div>
+      <div class="stat-pill" id="rerollPill">重骰：🎲×2</div>
+      <div class="stat-pill" id="turnCounterPill">行動：0</div>
+    </div>
+    <div class="control-group">
+      <button class="p5-btn" id="startBattleBtn" onclick="startOrToggleBattle()">⚔️ 開戰</button>
+      <button class="p5-btn secondary" id="pauseBattleBtn" onclick="togglePauseBattle()" disabled>⏸️ 暫停</button>
+      <button class="p5-btn gold" id="stepBattleBtn" onclick="stepNextTurn()" disabled>⏭️ 單步</button>
+    </div>
+  </header>
 
-<div class="status-bar">
-  <div class="status-box">
-    <h3>🔗 觸發羈絆 (含【父親大人】護盾 & 重製【大佬時代】)</h3>
-    <div class="badge-list" id="synergyList">尚未上陣英雄</div>
+  <!-- 死鬥疲勞警報橫幅 -->
+  <div id="fatigueBanner" class="fatigue-banner hidden">
+    ⚠️ 死鬥疲勞啟動！全場治療效果大幅衰減、造成傷害全面遞增！
   </div>
-  <div class="status-box">
-    <h3>⚡ 海克斯增幅 (新增【🥬 大力生菜】手動指定升星)</h3>
-    <div class="badge-list" id="augmentList">尚未獲得增幅</div>
-  </div>
-</div>
 
-<div class="arena">
-  <div class="battlefield">
-    <div class="team-column">
-      <div class="team-header ally">
-        <span>🟢 我方小隊 (上限 4 人 | ★3 解鎖專屬極意 & 排除卡池)</span>
-        <span id="allyCount">0 / 4</span>
+  <!-- 主體三欄 -->
+  <main class="main-layout">
+    <!-- 左欄：TFT 風格羈絆追蹤器 + 海克斯 -->
+    <aside class="side-panel">
+      <div>
+        <div class="panel-title">
+          <span>🔗 場上羈絆追蹤</span>
+          <span style="font-size:0.74rem;color:#94a3b8;">亮起＝已在場上</span>
+        </div>
+        <div id="traitListContainer"></div>
       </div>
-      <div class="unit-grid" id="allyGrid"></div>
-    </div>
-    <div class="team-column">
-      <div class="team-header enemy">
-        <span>🔴 深淵守衛 (第 8 關終極 Boss：👹 楊守正)</span>
-        <span id="enemyStageName">第 1 關對手</span>
+      <div>
+        <div class="panel-title"><span>💠 已持有海克斯</span></div>
+        <div id="augmentListContainer" style="font-size:0.8rem;color:#cbd5e1;">尚未獲得海克斯強化</div>
       </div>
-      <div class="unit-grid" id="enemyGrid"></div>
-    </div>
-  </div>
-</div>
+    </aside>
 
-<div class="bottom-section">
-  <div class="controls-box">
-    <button class="btn btn-primary" id="startBattleBtn" onclick="startBattle()">⚔️ 開始本關戰鬥</button>
-    <button class="btn btn-secondary" id="speedBtn" onclick="toggleSpeed()">⏩ 戰鬥速度: 1x</button>
-    <button class="btn btn-danger" onclick="resetGame()">🔄 重新開局</button>
-  </div>
-  <div class="log-box" id="battleLog"></div>
-</div>
-
-<!-- 1. 選卡、海克斯增幅與【🥬 大力生菜】指定升星 Modal -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal-content" id="draftModalContent">
-    <h2 class="modal-title" id="modalTitle">選擇你的初始英雄</h2>
-    <p class="modal-sub" id="modalSub">從以下 3 位 Discord 成員中招募 1 位加入隊伍</p>
-    
-    <div class="draft-overview" id="draftOverview">
-      <div class="draft-overview-row">
-        <span class="draft-overview-label">🟢 當前隊伍：</span>
-        <div id="draftTeamPreview" style="display:flex; gap:6px; flex-wrap:wrap;">尚未招募</div>
+    <!-- 中欄：聖火對峙條 + 6x4 棋盤 + 冷板凳與簡化技能檢視 -->
+    <section class="center-stage">
+      <!-- 《聖火降魔錄》式左右對峙交戰視窗 -->
+      <div class="fe-forecast-bar" id="feForecastBar">
+        <div class="fe-side" id="feLeftBox">
+          <div class="fe-avatar" id="feLeftIcon">♟️</div>
+          <div>
+            <div class="fe-info-name" id="feLeftName">戰前部署階段</div>
+            <div class="fe-info-sub" id="feLeftStats">點擊下方我方棋子與格位可自由擺位或移至冷板凳</div>
+          </div>
+        </div>
+        <div class="fe-vs-center" id="feCenterVs">READY</div>
+        <div class="fe-side right" id="feRightBox">
+          <div>
+            <div class="fe-info-name" id="feRightName">等待交戰</div>
+            <div class="fe-info-sub" id="feRightStats">射程 1=近戰 / 2=中距 / 3=遠程</div>
+          </div>
+          <div class="fe-avatar" id="feRightIcon">🎯</div>
+        </div>
       </div>
-      <div class="draft-overview-row">
-        <span class="draft-overview-label">🔗 當前羈絆：</span>
-        <div id="draftSynergyPreview" style="display:flex; gap:6px; flex-wrap:wrap;">無</div>
+
+      <!-- 6x4 戰術棋盤 -->
+      <div class="board-wrapper">
+        <div class="board-hint">
+          <span>🔴 上半部（Row 0~1）：敵方深淵陣線</span>
+          <span>🔵 下半部（Row 2~3）：我方部署區（最多上陣 4 人，點擊兩格交換位置）</span>
+        </div>
+        <svg id="vfxSvgLayer"></svg>
+        <div class="tactical-grid" id="tacticalGrid"></div>
       </div>
-      <div class="draft-overview-row">
-        <span class="draft-overview-label">⚡ 已有增幅：</span>
-        <div id="draftAugmentPreview" style="display:flex; gap:6px; flex-wrap:wrap;">無</div>
+
+      <!-- 下方：2 格冷板凳 + 極簡標籤檢視器 -->
+      <div class="bottom-bar-grid">
+        <div class="bench-box">
+          <div class="panel-title" style="margin-bottom:2px;">
+            <span>🪑 冷板凳備戰區 (2格)</span>
+            <span style="font-size:0.7rem;color:#94a3b8;">點擊與場上交換</span>
+          </div>
+          <div class="bench-slots" id="benchContainer"></div>
+        </div>
+
+        <div class="inspector-box" id="unitInspector">
+          <div class="inspector-header">
+            <div>
+              <strong id="inspName" style="font-size:1.05rem;color:var(--p5-gold);">點擊任意英雄查看極簡定位</strong>
+              <span id="inspTitle" style="font-size:0.8rem;color:#94a3b8;margin-left:8px;"></span>
+            </div>
+            <button class="p5-btn secondary" id="inspDetailBtn" style="padding:3px 10px;font-size:0.76rem;" onclick="openHeroDetailModal()">📖 展開完整技能數值</button>
+          </div>
+          <div class="tag-row" id="inspTags"></div>
+          <div id="inspShortDesc" style="font-size:0.84rem;color:#e2e8f0;">
+            💡 提示：點擊我方棋盤格或冷板凳可調換擺位；戰鬥中可隨時按「⏸️ 暫停」與「⏭️ 單步」觀察每一擊。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右欄：即時傷害統計（固定不遮擋）與戰鬥紀錄 -->
+    <aside class="side-panel">
+      <div>
+        <div class="panel-title"><span>📊 小隊即時戰績</span></div>
+        <div id="dpsMeterContainer"></div>
+      </div>
+      <div>
+        <div class="panel-title">
+          <span>📜 深淵戰鬥紀錄</span>
+          <button onclick="clearBattleLog()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.75rem;">清空</button>
+        </div>
+        <div class="log-box" id="battleLogBox"></div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 選秀 / 升星 / 詳情彈窗 -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header-row">
+        <div>
+          <h2 id="modalTitle" style="margin:0;color:var(--p5-gold);">深淵選秀</h2>
+          <div id="modalSub" style="font-size:0.85rem;color:#cbd5e1;margin-top:4px;"></div>
+        </div>
+        <button id="modalRerollBtn" class="p5-btn gold" onclick="handleModalReroll()">🎲 重骰選項 (剩餘 2 次)</button>
+      </div>
+      <div id="modalGrid" class="draft-grid"></div>
+    </div>
+  </div>
+
+  <!-- P5 必殺技特寫 (Queue 序列不重疊) -->
+  <div id="cutInOverlay" class="p5-cutin-overlay hidden">
+    <div class="p5-cutin-banner">
+      <div id="cutInIcon" style="font-size:4.2rem;filter:drop-shadow(4px 4px 0 #000);">⚡</div>
+      <div>
+        <div id="cutInName" style="font-size:2rem;font-weight:900;color:#fff;text-shadow:3px 3px 0 #000;"></div>
+        <div id="cutInSub" style="font-size:1.1rem;font-weight:900;color:var(--p5-gold);"></div>
       </div>
     </div>
-
-    <div class="choices-grid" id="choicesGrid"></div>
   </div>
-  <button class="peek-btn" onclick="togglePeekBoard()">👁️ 切換查看棋盤</button>
-</div>
 
-<!-- 2. 宿敵彩蛋與 3盤2勝 3D6 骰子單挑 Modal -->
-<div class="modal-overlay hidden" id="nemesisModal">
-  <div class="modal-content" id="nemesisContent"></div>
-</div>
-
-<!-- 3. 賽後戰報數據統計與命數結算 Modal -->
-<div class="modal-overlay hidden" id="reportModal">
-  <div class="modal-content" id="reportContent"></div>
-</div>
-
-<!-- 4. 內建全圖鑑 Modal -->
-<div class="modal-overlay hidden" id="codexModal">
-  <div class="modal-content">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h2 class="modal-title">📘 《DC BON 全明星戰棋》V4 深淵圖鑑</h2>
-      <button class="btn btn-danger" style="padding:6px 14px;" onclick="closeCodex()">✖ 關閉</button>
-    </div>
-    <div class="codex-tabs">
-      <button class="codex-tab active" id="tabHeroes" onclick="renderCodexTab('heroes')">🦸‍♂️ 全英雄 & Boss (19位)</button>
-      <button class="codex-tab" id="tabTraits" onclick="renderCodexTab('traits')">🔗 羈絆說明 (10大陣營)</button>
-      <button class="codex-tab" id="tabAugments" onclick="renderCodexTab('augments')">⚡ 海克斯增幅 (14款)</button>
-    </div>
-    <div id="codexBody" style="text-align:left; max-height:68vh; overflow-y:auto;"></div>
-  </div>
-</div>
-
-<!-- 5. 重新開局確認 Modal (P5 風格，取代原生 confirm) -->
-<div class="modal-overlay hidden" id="confirmResetModal">
-  <div class="modal-content" style="max-width: 440px;">
-    <h2 class="modal-title" style="color:var(--p5-red);">🔄 確定要重新開始新一局嗎？</h2>
-    <p class="modal-sub" style="margin-top:8px;">目前的隊伍陣容、關卡進度與海克斯增幅將會重置，並返回第 1 關重新選秀。</p>
-    <div style="display:flex; gap:12px; justify-content:center; margin-top:18px;">
-      <button class="btn btn-primary" style="width:150px;" onclick="confirmResetGame()">✔ 確定重開</button>
-      <button class="btn btn-secondary" style="width:150px;" onclick="closeResetModal()">✖ 取消返回</button>
-    </div>
-  </div>
-</div>
-
-<div id="customTooltip"></div>
-
-<script src="data.js"></script>
-<script src="engine.js"></script>
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
 </body>
 </html>
